@@ -25,7 +25,7 @@ export function Rule(ruleOptions: IRuleDeclarationOptions): MethodDecorator {
 
         ruleDeclaration.triggers.forEach(t => {
             if (!t.constr) {
-                t.constr = target;
+                t.constr = ruleDeclaration.constr;
             }
         });
 

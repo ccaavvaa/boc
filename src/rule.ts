@@ -1,16 +1,4 @@
-export enum MessageType {
-    Unknown = 0,
-    ObjectInit = 1 << 0,
-    PropChanged = 1 << 1,
-    Saving = 1 << 5,
-    Saved = 1 << 6,
-}
-
-export interface ITrigger {
-    kind: MessageType;
-    constr?: Function;
-    body?: any;
-};
+import { ITrigger } from "./message";
 
 export interface IRuleDeclarationOptions {
     id: string;
@@ -27,6 +15,10 @@ export class RuleDeclaration {
     public rule: any;
     public level: number;
     public isStatic: boolean;
+
+    public getTriggersByClass(constr: any): ITrigger[] {
+        return this.triggers.filter(t => t.constr === constr);
+    }
 }
 
 export var ruleDeclarations: RuleDeclaration[] = [];
