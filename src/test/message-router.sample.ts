@@ -2,7 +2,7 @@
 import { Message, MessageType } from "../message";
 import { MessageRouter } from "../message-router";
 
-class Base {
+export class Base {
 
     protected data: any = {};
 
@@ -50,7 +50,7 @@ class Base {
     }
 }
 
-class A extends Base {
+export class A extends Base {
 
     constructor(router: MessageRouter) {
         super(router);
