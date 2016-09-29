@@ -42,10 +42,11 @@ export class Message {
         public readonly kind: MessageType,
         public readonly constr: Function,
         public readonly target: any,
-        public readonly body: any) {
+        public readonly body: any = undefined) {
     }
 
     public match(trigger: ITrigger) {
-        return _.isMatch(this, trigger);
+        let m = _.isMatch(this, trigger);
+        return m;
     }
 }

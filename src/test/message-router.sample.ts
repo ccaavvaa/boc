@@ -1,4 +1,4 @@
-// import { Rule } from "../decorators";
+import { Rule } from "../decorators";
 import { Message, MessageType } from "../message";
 import { MessageRouter } from "../message-router";
 
@@ -27,26 +27,17 @@ export class Base {
 
     protected async setProp(propName: string, value: any): Promise<boolean> {
         let oldValue = this.data[propName];
-        let oldValidValue = this.lastValidData[propName];
-        if (value !== oldValue || value !== oldValidValue) {
-            this.errors[propName] = [];
-            this.data[propName] = value;
-            let message = new Message(
-                MessageType.PropChanged,
-                this.constructor,
-                this,
-                {
-                    oldValidValue: oldValidValue,
-                    oldValue: oldValue,
-                    propName: propName,
-                });
-            let propagationOK = await this.router.sendMessage(message);
-            if (propagationOK) {
-                this.lastValidData[propName] = value;
-            }
-            return propagationOK;
-        }
-        return true;
+        this.data[propName] = value;
+        let message = new Message(
+            MessageType.PropChanged,
+            this.constructor,
+            this,
+            {
+                oldValue: oldValue,
+                propName: propName,
+            });
+        let propagationOK = await this.router.sendMessage(message);
+        return propagationOK;
     }
 }
 
@@ -62,5 +53,65 @@ export class A extends Base {
 
     public set_a(value: string): Promise<boolean> {
         return this.setProp("a", value);
+    }
+
+    public get_b(): Promise<string> {
+        return Promise.resolve<string>(this.data.b);
+    }
+
+    public set_b(value: string): Promise<boolean> {
+        return this.setProp("b", value);
+    }
+
+    public get_c(): Promise<string> {
+        return Promise.resolve<string>(this.data.c);
+    }
+
+    public set_c(value: string): Promise<boolean> {
+        return this.setProp("c", value);
+    }
+
+    @Rule({
+        description: "A:initialisation",
+        id: "A.0",
+        level: 0,
+        triggers: [{ kind: MessageType.ObjectInit }],
+    })
+    public async init(msg: Message): Promise<boolean> {
+        let result = await this.set_a("initial a");
+        return result;
+    }
+
+    @Rule({
+        description: "A:c=a+b",
+        id: "A.1",
+        level: 0,
+        triggers: [
+            {
+                body: { propName: "a" },
+                kind: MessageType.PropChanged,
+            },
+            {
+                body: { propName: "b" },
+                kind: MessageType.PropChanged,
+            },
+        ],
+    })
+    public async calculateC(msg: Message): Promise<boolean> {
+        let aa = await this.get_a();
+        let bb = await this.get_b();
+        let x: string[] = [aa, bb];
+        let newValue = x.reduce((p, v) => {
+            if (v) {
+                if (p) {
+                    p = p + " ";
+                }
+                p = p + v;
+            }
+            return p;
+        }, "");
+
+        let result = await this.set_c(newValue);
+        return result;
     }
 }

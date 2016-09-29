@@ -1,6 +1,7 @@
 import { Message } from "./message";
 import { ModelMetadata } from "./model-metadata";
 import { RuleDeclaration } from "./rule";
+import * as _ from "lodash";
 
 export class MessageRouterStackElement {
     constructor(
@@ -21,12 +22,17 @@ export class MessageRouter {
         }
         let triggersRules = classInfo.rulesByType.get(message.kind);
         if (triggersRules === undefined) {
-            return Promise.resolve<boolean>(true);
+            return true;
         }
+
         let rulesToExecute = triggersRules
             .filter(v => message.match(v.trigger))
             .map(v => v.ruleDeclarations)
-            .reduce((p, c, []) => _.union(p, c));
+            .reduce((p, v) => {
+                let n = _.union(p, v);
+                return n;
+            }, []);
+
         for (let i = 0, len = rulesToExecute.length; i < len; i++) {
             let shouldContinue = await this.dispatchMessage(message, rulesToExecute[i]);
             if (!shouldContinue) {
@@ -35,13 +41,16 @@ export class MessageRouter {
         }
         return true;
     }
+
     private async dispatchMessage(message: Message, ruleDeclaration: RuleDeclaration): Promise<boolean> {
         this.stack.push(new MessageRouterStackElement(message, ruleDeclaration));
         let execResult: boolean = false;
         try {
-            execResult = ruleDeclaration.isStatic ?
-                await ruleDeclaration.rule(message.target, message) :
-                await (ruleDeclaration.rule as Function).bind(message.target, message);
+            if (ruleDeclaration.isStatic) {
+                execResult = await ruleDeclaration.rule(message.target, message);
+            } else {
+                execResult = await ((ruleDeclaration.rule as Function).call(message.target, message));
+            }
         } catch (ex) {
             execResult = false;
             message.target.setError(ex);

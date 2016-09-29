@@ -24,6 +24,6 @@ export declare class Message {
     readonly constr: Function;
     readonly target: any;
     readonly body: any;
-    constructor(kind: MessageType, constr: Function, target: any, body: any);
+    constructor(kind: MessageType, constr: Function, target: any, body?: any);
     match(trigger: ITrigger): boolean;
 }
