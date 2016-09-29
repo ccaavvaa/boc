@@ -7,7 +7,7 @@ import "mocha";
 
 const expect = chai.expect;
 
-describe("message router", () => {
+describe("Message router", () => {
     let router: MessageRouter;
     before(() => {
         let metadata: ModelMetadata = new ModelMetadata();
@@ -16,7 +16,7 @@ describe("message router", () => {
         ci.registerRules();
         router = new MessageRouter(metadata);
     });
-    it("should route", () => {
+    it("should route :-)", () => {
         let test = async (): Promise<boolean> => {
             let instance = new A(router);
             let ret = await router.sendMessage(new Message(MessageType.ObjectInit, A, instance));
