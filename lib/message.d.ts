@@ -21,9 +21,9 @@ export declare class Trigger implements ITrigger {
 }
 export declare class Message {
     readonly kind: MessageType;
-    readonly constr: Function;
     readonly target: any;
     readonly body: any;
-    constructor(kind: MessageType, constr: Function, target: any, body?: any);
+    readonly constr: Function;
+    constructor(kind: MessageType, target: any, body?: any, constr?: Function);
     match(trigger: ITrigger): boolean;
 }

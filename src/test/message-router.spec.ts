@@ -19,7 +19,7 @@ describe("Message router", () => {
     it("should route :-)", () => {
         let test = async (): Promise<boolean> => {
             let instance = new A(router);
-            let ret = await router.sendMessage(new Message(MessageType.ObjectInit, A, instance));
+            let ret = await router.sendMessage(new Message(MessageType.ObjectInit, instance));
             expect(ret).to.be.equal(true);
             expect(await instance.get_a()).to.be.equal("initial a");
             expect(await instance.get_b()).to.be.equal(undefined);

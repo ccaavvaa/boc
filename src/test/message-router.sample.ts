@@ -6,8 +6,6 @@ export class Base {
 
     protected data: any = {};
 
-    protected lastValidData: any = {};
-
     protected errors: any = {};
 
     protected constructor(protected router: MessageRouter) { }
@@ -30,12 +28,12 @@ export class Base {
         this.data[propName] = value;
         let message = new Message(
             MessageType.PropChanged,
-            this.constructor,
             this,
             {
                 oldValue: oldValue,
                 propName: propName,
-            });
+            }
+            );
         let propagationOK = await this.router.sendMessage(message);
         return propagationOK;
     }

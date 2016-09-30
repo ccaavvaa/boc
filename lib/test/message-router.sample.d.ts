@@ -3,7 +3,6 @@ import { MessageRouter } from "../message-router";
 export declare class Base {
     protected router: MessageRouter;
     protected data: any;
-    protected lastValidData: any;
     protected errors: any;
     protected constructor(router: MessageRouter);
     setError(error: any, path: string): void;

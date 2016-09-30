@@ -40,9 +40,12 @@ export class Trigger implements ITrigger {
 export class Message {
     public constructor(
         public readonly kind: MessageType,
-        public readonly constr: Function,
         public readonly target: any,
-        public readonly body: any = undefined) {
+        public readonly body: any = undefined,
+        public readonly constr: Function = undefined) {
+            if (constr === undefined) {
+                this.constr = target.constructor;
+        }
     }
 
     public match(trigger: ITrigger) {
