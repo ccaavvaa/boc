@@ -12,31 +12,38 @@ export class Base {
     }
 }
 
-export class HasManySettings<P extends Base, C extends Base> {
-    public readonly fk: keyof C;
-    public readonly prop: keyof P;
-    public readonly constr: { new (data?: any): C };
+export interface IManySettings<P extends Base, C extends Base> {
+    fk: keyof C;
+    prop: keyof P;
+    constr?: { new (data?: any): C };
+}
 
-    public constructor(fk: keyof C, constr: { new (data?: any): C }, prop: keyof P) {
-        this.fk = fk;
-        this.prop = prop;
-        this.constr = constr;
+export class ManyBase<P extends Base, C extends Base> {
+    public items: Array<C>;
+
+    protected owner: any;
+    protected settings: IManySettings<P, C>;
+
+    constructor(owner: P, settings: IManySettings<P, C>) {
+        this.owner = owner;
+        this.settings = settings;
+    }
+
+    public Add(opposite: C) {
+        opposite[this.settings.fk] = this.owner.id;
+        this.items.push(opposite);
     }
 }
 
-export class HasMany<P extends Base, C extends Base>{
+export class HasMany<P extends Base, C extends Base> extends ManyBase<P, C> {
     public items: Array<C>;
-
-    private settings: HasManySettings<P, C>;
-    private owner: any;
 
     private get dataArray(): any[] {
         return this.owner.dataObject[this.settings.prop] as any[];
     }
 
-    constructor(owner: P, settings: HasManySettings<P, C>) {
-        this.owner = owner;
-        this.settings = settings;
+    constructor(owner: P, settings: IManySettings<P, C>) {
+        super(owner, settings);
         this.Load();
     }
 
@@ -49,7 +56,6 @@ export class HasMany<P extends Base, C extends Base>{
     public Load(): void {
         this.items = new Array<C>();
         let dataArray = this.dataArray;
-
         if (dataArray) {
             for (let data of dataArray) {
                 let opposite = new this.settings.constr(data);
@@ -60,7 +66,7 @@ export class HasMany<P extends Base, C extends Base>{
 }
 
 export class A extends Base {
-    private flistB: HasMany<A, B>;
+    private listBField: HasMany<A, B>;
 
     public get id(): string {
         return this.dataObject.id;
@@ -69,7 +75,7 @@ export class A extends Base {
         this.dataObject.id = value;
     }
     public get listB(): HasMany<A, B> {
-        return this.flistB;
+        return this.listBField;
     }
 
     constructor(data: any = {}) {
@@ -77,7 +83,13 @@ export class A extends Base {
         if (!this.dataObject.listB) {
             this.dataObject.listB = [];
         }
-        this.flistB = new HasMany(this, new HasManySettings<A, B>("idA", B, "listB"));
+        this.listBField = new HasMany(this,
+            {
+                constr: B,
+                fk: "idA",
+                prop: "listB",
+            } as IManySettings<A, B>
+        );
     }
 }
 

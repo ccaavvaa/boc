@@ -3,27 +3,29 @@ export declare class Base {
     dataObject: any;
     constructor(data?: any);
 }
-export declare class HasManySettings<P extends Base, C extends Base> {
-    readonly fk: keyof C;
-    readonly prop: keyof P;
-    readonly constr: {
+export interface IManySettings<P extends Base, C extends Base> {
+    fk: keyof C;
+    prop: keyof P;
+    constr?: {
         new (data?: any): C;
     };
-    constructor(fk: keyof C, constr: {
-        new (data?: any): C;
-    }, prop: keyof P);
 }
-export declare class HasMany<P extends Base, C extends Base> {
+export declare class ManyBase<P extends Base, C extends Base> {
     items: Array<C>;
-    private settings;
-    private owner;
+    protected owner: any;
+    protected settings: IManySettings<P, C>;
+    constructor(owner: P, settings: IManySettings<P, C>);
+    Add(opposite: C): void;
+}
+export declare class HasMany<P extends Base, C extends Base> extends ManyBase<P, C> {
+    items: Array<C>;
     private readonly dataArray;
-    constructor(owner: P, settings: HasManySettings<P, C>);
+    constructor(owner: P, settings: IManySettings<P, C>);
     Add(opposite: C): void;
     Load(): void;
 }
 export declare class A extends Base {
-    private flistB;
+    private listBField;
     id: string;
     readonly listB: HasMany<A, B>;
     constructor(data?: any);
