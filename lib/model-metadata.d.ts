@@ -1,4 +1,3 @@
-/// <reference types="lodash" />
 import { MessageType, Trigger } from "./message";
 import { RuleDeclaration } from "./rule";
 export interface IRulesForTrigger {

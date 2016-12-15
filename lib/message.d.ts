@@ -1,4 +1,3 @@
-/// <reference types="lodash" />
 export declare enum MessageType {
     Unknown = 0,
     ObjectInit = 1,
