@@ -1,6 +1,6 @@
-import { Rule } from "../decorators";
-import { Message, MessageType } from "../message";
-import { MessageRouter } from "../message-router";
+import { Rule } from '../decorators';
+import { Message, MessageType } from '../message';
+import { MessageRouter } from '../message-router';
 
 export class Base {
 
@@ -12,7 +12,7 @@ export class Base {
 
     public setError(error: any, path: string) {
         if (!path) {
-            path = ".";
+            path = '.';
         }
         let errors: any[] = this.errors[path] as any[];
         if (!errors) {
@@ -50,7 +50,7 @@ export class A extends Base {
     }
 
     public set_a(value: string): Promise<boolean> {
-        return this.setProp("a", value);
+        return this.setProp('a', value);
     }
 
     public get_b(): Promise<string> {
@@ -58,7 +58,7 @@ export class A extends Base {
     }
 
     public set_b(value: string): Promise<boolean> {
-        return this.setProp("b", value);
+        return this.setProp('b', value);
     }
 
     public get_c(): Promise<string> {
@@ -66,31 +66,31 @@ export class A extends Base {
     }
 
     public set_c(value: string): Promise<boolean> {
-        return this.setProp("c", value);
+        return this.setProp('c', value);
     }
 
     @Rule({
-        description: "A:initialisation",
-        id: "A.0",
+        description: 'A:initialisation',
+        id: 'A.0',
         level: 0,
         triggers: [{ kind: MessageType.ObjectInit }],
     })
     public async init(msg: Message): Promise<boolean> {
-        let result = await this.set_a("initial a");
+        let result = await this.set_a('initial a');
         return result;
     }
 
     @Rule({
-        description: "A:c=a+b",
-        id: "A.1",
+        description: 'A:c=a+b',
+        id: 'A.1',
         level: 0,
         triggers: [
             {
-                body: { propName: "a" },
+                body: { propName: 'a' },
                 kind: MessageType.PropChanged,
             },
             {
-                body: { propName: "b" },
+                body: { propName: 'b' },
                 kind: MessageType.PropChanged,
             },
         ],
@@ -102,12 +102,12 @@ export class A extends Base {
         let newValue = x.reduce((p, v) => {
             if (v) {
                 if (p) {
-                    p = p + " ";
+                    p = p + ' ';
                 }
                 p = p + v;
             }
             return p;
-        }, "");
+        }, '');
 
         let result = await this.set_c(newValue);
         return result;

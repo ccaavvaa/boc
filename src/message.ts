@@ -1,9 +1,11 @@
-import * as _ from "lodash";
+import * as _ from 'lodash';
 
 export enum MessageType {
     Unknown = 0,
     ObjectInit = 1 << 0,
     PropChanged = 1 << 1,
+    Link = 1 << 2,
+    Unlink = 1 << 3,
     Saving = 1 << 5,
     Saved = 1 << 6,
 }

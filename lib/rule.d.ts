@@ -1,4 +1,4 @@
-import { ITrigger } from "./message";
+import { ITrigger } from './message';
 export interface IRuleDeclarationOptions {
     id: string;
     description?: string;

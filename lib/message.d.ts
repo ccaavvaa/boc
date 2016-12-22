@@ -2,6 +2,8 @@ export declare enum MessageType {
     Unknown = 0,
     ObjectInit = 1,
     PropChanged = 2,
+    Link = 4,
+    Unlink = 8,
     Saving = 32,
     Saved = 64,
 }

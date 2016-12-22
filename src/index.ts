@@ -1,5 +1,5 @@
 /*
-import { Greeter } from "./greeter";
+import { Greeter } from './greeter';
 
 export { Greeter };
 */

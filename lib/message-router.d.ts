@@ -1,6 +1,6 @@
-import { Message } from "./message";
-import { ModelMetadata } from "./model-metadata";
-import { RuleDeclaration } from "./rule";
+import { Message } from './message';
+import { ModelMetadata } from './model-metadata';
+import { RuleDeclaration } from './rule';
 export declare class MessageRouterStackElement {
     readonly message: Message;
     readonly ruleDeclaration: RuleDeclaration;

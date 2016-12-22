@@ -1,5 +1,5 @@
-import { Message } from "../message";
-import { MessageRouter } from "../message-router";
+import { Message } from '../message';
+import { MessageRouter } from '../message-router';
 export declare class Base {
     protected router: MessageRouter;
     protected data: any;

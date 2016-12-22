@@ -1,7 +1,9 @@
-import { MessageRouter } from "./message-router";
-import { ModelMetadata } from "./model-metadata";
+import { IContainerSettings, IObjectStore } from './interface';
+import { MessageRouter } from './message-router';
+import { ModelMetadata } from './model-metadata';
 export declare class Container {
-    readonly modelMetadata: ModelMetadata;
     readonly messageRouter: MessageRouter;
-    constructor(modelMetadata: ModelMetadata);
+    readonly objectStore: IObjectStore;
+    readonly modelMetadata: ModelMetadata;
+    constructor(settings: IContainerSettings);
 }

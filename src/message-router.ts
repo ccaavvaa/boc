@@ -1,7 +1,7 @@
-import { Message } from "./message";
-import { ModelMetadata } from "./model-metadata";
-import { RuleDeclaration } from "./rule";
-import * as _ from "lodash";
+import { Message } from './message';
+import { ModelMetadata } from './model-metadata';
+import { RuleDeclaration } from './rule';
+import * as _ from 'lodash';
 
 export class MessageRouterStackElement {
     constructor(
@@ -18,7 +18,7 @@ export class MessageRouter {
     public async sendMessage(message: Message): Promise<boolean> {
         let classInfo = this.metadata.classesByConstr.get(message.constr);
         if (classInfo === undefined) {
-            throw new Error("Class not registered: ${message.constr.name}");
+            throw new Error('Class not registered: ${message.constr.name}');
         }
         let triggersRules = classInfo.rulesByType.get(message.kind);
         if (triggersRules === undefined) {

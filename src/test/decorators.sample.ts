@@ -1,8 +1,8 @@
-import { Rule } from "../decorators";
-import { MessageType } from "../message";
+import { Rule } from '../decorators';
+import { MessageType } from '../message';
 export class TestDecorator1 {
     @Rule({
-        id: "TestDecorator1.rule1",
+        id: 'TestDecorator1.rule1',
         triggers: [
             { kind: MessageType.ObjectInit },
         ],
@@ -14,7 +14,7 @@ export class TestDecorator1 {
 
 export class TestDecorator2 {
     @Rule({
-        id: "TestDecorator2.rule2",
+        id: 'TestDecorator2.rule2',
         triggers: [
             { constr: TestDecorator1, kind: MessageType.ObjectInit },
             { constr: TestDecorator2, kind: MessageType.PropChanged },

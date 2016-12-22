@@ -1,24 +1,8 @@
-export class Base {
-    public get id(): string {
-        return this.dataObject.id;
-    }
-    public set id(value: string) {
-        this.dataObject.id = value;
-    }
-    public dataObject: any;
-
-    constructor(data: any = {}) {
-        this.dataObject = data;
-    }
-}
-
-export interface IManySettings<P extends Base, C extends Base> {
-    fk: keyof C;
-    prop: keyof P;
-    constr?: { new (data?: any): C };
-}
-
-export class ManyBase<P extends Base, C extends Base> {
+import { Container } from '../container';
+import { ModelObject } from '../model-object';
+import { HasOne, IRelationSettings, Reference } from '../relation';
+/*
+export class ManyBase<P extends ModelObject, C extends ModelObject> {
     public items: Array<C>;
 
     protected owner: any;
@@ -34,7 +18,6 @@ export class ManyBase<P extends Base, C extends Base> {
         this.items.push(opposite);
     }
 }
-
 export class HasMany<P extends Base, C extends Base> extends ManyBase<P, C> {
     public items: Array<C>;
 
@@ -65,38 +48,57 @@ export class HasMany<P extends Base, C extends Base> extends ManyBase<P, C> {
     }
 }
 
-export class A extends Base {
-    private listBField: HasMany<A, B>;
+*/
+export class A extends ModelObject {
 
-    public get id(): string {
-        return this.dataObject.id;
-    }
-    public set id(value: string) {
-        this.dataObject.id = value;
-    }
-    public get listB(): HasMany<A, B> {
-        return this.listBField;
+    public readonly c: HasOne<A, C>;
+
+    public readonly refB: Reference<A, B>;
+
+    public get idB(): string {
+        return this.data.idB;
     }
 
-    constructor(data: any = {}) {
-        super(data);
-        if (!this.dataObject.listB) {
-            this.dataObject.listB = [];
-        }
-        this.listBField = new HasMany(this,
+    constructor(container: Container) {
+        super(container);
+        this.refB = new Reference<A, B>(this,
             {
-                constr: B,
-                fk: "idA",
-                prop: "listB",
-            } as IManySettings<A, B>
-        );
+                key: 'idB',
+                roleProp: 'refB',
+            } as IRelationSettings<A, B>);
+        this.c = new HasOne<A, C>(this,
+            {
+                oppositeConstr: C,
+                oppositeKey: 'idA',
+                oppositeRoleProp: 'a',
+                roleProp: 'c',
+            } as IRelationSettings<A, C>);
+
     }
 }
 
-export class B extends Base {
-    public idA: string;
+export class B extends ModelObject {
+    public constructor(container: Container) {
+        super(container);
+    }
+}
 
-    constructor(data: any = {}) {
-        super(data);
+export class C extends ModelObject {
+
+    public readonly a: Reference<C, A>;
+
+    public get idA(): string {
+        return this.data.idA;
+    }
+
+    public constructor(container: Container) {
+        super(container);
+        this.a = new Reference<C, A>(this,
+            {
+                isSlave: true,
+                key: 'idA',
+                oppositeRoleProp: 'c',
+                roleProp: 'a',
+            } as IRelationSettings<C, A>);
     }
 }

@@ -1,16 +1,21 @@
-import { Container } from "./container";
-import { Message, MessageType } from "./message";
+import { Container } from './container';
+import { Message, MessageType } from './message';
 
 export class ModelObject {
 
+    public static readonly oidProp = 'oid';
+
+    public readonly container: Container;
+
     public get oid(): string {
-        return this.data.id;
+        return this.data.oid;
     }
 
     // data object
-    protected data: any;
+    public data: any;
 
-    protected constructor(protected container: Container) {
+    protected constructor(container: Container) {
+        this.container = container;
     }
 
     public init(data: any): void {
@@ -18,10 +23,16 @@ export class ModelObject {
     }
 
     public async initNew(oid: string): Promise<boolean> {
-        this.data.oid = oid;
+        this.data = {
+            'oid': oid,
+        };
         let message = new Message(MessageType.ObjectInit, this);
         let propagationOK = await this.container.messageRouter.sendMessage(message);
         return propagationOK;
+    }
+
+    public sendMessage(message: Message): Promise<boolean> {
+        return this.container.messageRouter.sendMessage(message);
     }
 
     protected getProp(propName: string): any {
@@ -31,7 +42,7 @@ export class ModelObject {
         return this.data[propName];
     }
 
-    protected async setProp(propName: string, value: any): Promise<boolean> {
+    protected setProp(propName: string, value: any): Promise<boolean> {
         let oldValue = this.data[propName];
         this.data[propName] = value;
         let message = new Message(
@@ -41,7 +52,6 @@ export class ModelObject {
                 oldValue: oldValue,
                 propName: propName,
             });
-        let propagationOK = await this.container.messageRouter.sendMessage(message);
-        return propagationOK;
+        return this.sendMessage(message);
     }
 }

@@ -1,36 +1,17 @@
-export declare class Base {
-    id: string;
-    dataObject: any;
-    constructor(data?: any);
+import { Container } from '../container';
+import { ModelObject } from '../model-object';
+import { HasOne, Reference } from '../relation';
+export declare class A extends ModelObject {
+    readonly c: HasOne<A, C>;
+    readonly refB: Reference<A, B>;
+    readonly idB: string;
+    constructor(container: Container);
 }
-export interface IManySettings<P extends Base, C extends Base> {
-    fk: keyof C;
-    prop: keyof P;
-    constr?: {
-        new (data?: any): C;
-    };
+export declare class B extends ModelObject {
+    constructor(container: Container);
 }
-export declare class ManyBase<P extends Base, C extends Base> {
-    items: Array<C>;
-    protected owner: any;
-    protected settings: IManySettings<P, C>;
-    constructor(owner: P, settings: IManySettings<P, C>);
-    Add(opposite: C): void;
-}
-export declare class HasMany<P extends Base, C extends Base> extends ManyBase<P, C> {
-    items: Array<C>;
-    private readonly dataArray;
-    constructor(owner: P, settings: IManySettings<P, C>);
-    Add(opposite: C): void;
-    Load(): void;
-}
-export declare class A extends Base {
-    private listBField;
-    id: string;
-    readonly listB: HasMany<A, B>;
-    constructor(data?: any);
-}
-export declare class B extends Base {
-    idA: string;
-    constructor(data?: any);
+export declare class C extends ModelObject {
+    readonly a: Reference<C, A>;
+    readonly idA: string;
+    constructor(container: Container);
 }

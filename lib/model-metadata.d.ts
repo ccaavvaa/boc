@@ -1,5 +1,5 @@
-import { MessageType, Trigger } from "./message";
-import { RuleDeclaration } from "./rule";
+import { MessageType, Trigger } from './message';
+import { RuleDeclaration } from './rule';
 export interface IRulesForTrigger {
     trigger: Trigger;
     ruleDeclarations: RuleDeclaration[];
