@@ -4,8 +4,8 @@ export declare enum MessageType {
     PropChanged = 2,
     Link = 4,
     Unlink = 8,
-    Saving = 32,
-    Saved = 64,
+    Saving = 16,
+    Saved = 32,
 }
 export declare const messageTypes: Set<MessageType>;
 export interface ITrigger {

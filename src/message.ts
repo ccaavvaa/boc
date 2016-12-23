@@ -2,12 +2,12 @@ import * as _ from 'lodash';
 
 export enum MessageType {
     Unknown = 0,
-    ObjectInit = 1 << 0,
-    PropChanged = 1 << 1,
-    Link = 1 << 2,
-    Unlink = 1 << 3,
-    Saving = 1 << 5,
-    Saved = 1 << 6,
+    ObjectInit = 1,
+    PropChanged = 2,
+    Link = 4,
+    Unlink = 8,
+    Saving = 16,
+    Saved = 32,
 }
 
 export const messageTypes: Set<MessageType> = new Set<MessageType>([

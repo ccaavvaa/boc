@@ -18,56 +18,139 @@ export interface IRelationSettings<P extends ModelObject, C extends ModelObject>
 export abstract class Relation<P extends ModelObject, C extends ModelObject> {
     protected settings: IRelationSettings<P, C>;
 
+    protected loaded: boolean;
+
+    public get isLoaded(): boolean {
+        return this.loaded;
+    }
+
+    protected isMany: boolean;
+
+    protected isComposition = false;
+
     protected owner: P;
 
     protected constructor(owner: P, settings: IRelationSettings<P, C>) {
+        this.isMany = false;
+        this.isComposition = false;
         this.settings = settings;
         this.owner = owner;
+        this.loaded = false;
+
     }
 
     public getOppositeRole(opposite: C): Relation<C, P> {
-        if (opposite) {
+        if (opposite && this.settings.oppositeRoleProp) {
             let role = opposite[this.settings.oppositeRoleProp] as any;
             return role as Relation<C, P>;
         }
         return null;
     }
 
-    protected abstract async notifyLink(opposite: C): Promise<boolean>;
+    public unload(): void {
+        this.loaded = false;
+    }
 
-    protected abstract async notifyUnlink(opposite: C): Promise<boolean>;
+    protected async notifyRelationChange(messageType: MessageType, opposite: C, oldOpposite?: C): Promise<boolean> {
+        let oppositeRole = this.getOppositeRole(opposite);
+        let oldOppositeRole = this.getOppositeRole(oldOpposite);
+
+        type Notifier = () => Promise<boolean>;
+        let oldOppositeNotifier: Notifier = oldOppositeRole ? () =>
+            oppositeRole.notifyRoleChange(MessageType.Unlink, this.owner) : null;
+        let oppositeNotifier: Notifier = oppositeRole ? () =>
+            oppositeRole.notifyRoleChange(messageType, this.owner) : null;
+        let selfNotifier: Notifier = () => this.notifyRoleChange(messageType, opposite);
+        let roleNotifiers: Array<Notifier> = this.settings.isSlave ?
+            [oldOppositeNotifier, oppositeNotifier, selfNotifier] :
+            [oldOppositeNotifier, selfNotifier, oppositeNotifier];
+        let result: boolean = true;
+        for (let notifier of roleNotifiers) {
+            if (notifier) {
+                result = result && await notifier();
+            }
+        }
+        return result;
+    }
+
+    protected async notifyRoleChange(messageType: MessageType, opposite: C): Promise<boolean> {
+        let message = new Message(
+            messageType,
+            this.owner,
+            {
+                opposite: opposite,
+                propName: this.settings.roleProp,
+            });
+        let propagationOK = await this.owner.container.messageRouter.sendMessage(message);
+        return propagationOK;
+    }
 
     protected abstract doLink(opposite: C): void;
 
     protected abstract doUnlink(opposite: C): void;
+
+    protected internalLink(opposite: C, oldOpposite?: C): Promise<boolean> {
+        this.doLink(opposite);
+        let oppositeRole = this.getOppositeRole(opposite);
+        if (oppositeRole) {
+            (oppositeRole as any).doLink(this.owner);
+        }
+
+        return this.notifyRelationChange(MessageType.Link, opposite, oldOpposite);
+    }
+
+    protected internalUnlink(opposite: C) {
+        this.doUnlink(opposite);
+        let oppositeRole = this.getOppositeRole(opposite);
+        if (oppositeRole) {
+            (oppositeRole as any).doUnlink(this.owner);
+        }
+
+        return this.notifyRelationChange(MessageType.Link, opposite);
+    }
 }
 
 export abstract class OneBase<P extends ModelObject, C extends ModelObject> extends Relation<P, C> {
-    protected oppositeValue: C;
 
-    protected loaded: boolean;
+    protected oppositeValue: C;
 
     public constructor(owner: P, settings: IRelationSettings<P, C>) {
         super(owner, settings);
     }
 
-    public async getOpposite(): Promise<C> {
-        if (!this.oppositeValue) {
-            await this.load();
-        }
+    public unload(): void {
+        super.unload();
+        this.oppositeValue = null;
+    }
 
+    public async getOpposite(): Promise<C> {
+        await this.load();
         return this.oppositeValue;
     }
 
     public async link(opposite: C): Promise<boolean> {
         let currentOpposite = this.loaded ? this.oppositeValue : await this.getOpposite();
+
         if (currentOpposite === opposite) {
             return true;
         }
-        if (currentOpposite) {
-            throw new Error('Opposite is allready set');
+
+        // opposite is linked to another ?
+        let oppositeRole = this.getOppositeRole(opposite) as any;
+        if (oppositeRole && !oppositeRole.isMany && oppositeRole.key !== this.owner.oid) {
+            throw new Error('Opposite is linked to another object');
         }
-        return this.internalLink(opposite);
+
+        if (currentOpposite) {
+            if (this.isComposition) {
+                throw new Error('Opposite is set');
+            }
+            let currentOppositeRole = this.getOppositeRole(currentOpposite);
+            if (currentOppositeRole) {
+                (currentOppositeRole as any).doUnlink(this.owner);
+            }
+        }
+        return this.internalLink(opposite, currentOpposite);
     }
 
     public async unlink(): Promise<boolean> {
@@ -80,62 +163,24 @@ export abstract class OneBase<P extends ModelObject, C extends ModelObject> exte
             }
         }
 
-        let notify = async (): Promise<boolean> => {
-            return this.notifyUnlink(opposite);
-        };
-
-        let oppositeNotify = async (): Promise<boolean> => {
-            if (oppositeRole) {
-                return (oppositeRole as any).notifyUnlink(this.owner);
-            } else {
-                return true;
-            }
-        };
-
-        let notifications: (() => Promise<boolean>)[] = this.settings.isSlave ?
-            [oppositeNotify, notify] :
-            [notify, oppositeNotify];
-
-        let result = true;
-        for (let notification of notifications) {
-            result = result && await notification();
-        }
-        return result;
+        return this.notifyRelationChange(MessageType.Unlink, opposite);
     }
 
     protected abstract load(): Promise<boolean>;
-
-    protected async internalLink(opposite: C): Promise<boolean> {
-        this.doLink(opposite);
-        let oppositeRole = this.getOppositeRole(opposite);
-        if (oppositeRole) {
-            (oppositeRole as any).doLink(this.owner);
-        }
-
-        let oppositeNotify = async (): Promise<boolean> => {
-            if (oppositeRole) {
-                return (oppositeRole as any).notifyLink(this.owner);
-            } else {
-                return true;
-            }
-        };
-        let notify = async (): Promise<boolean> => {
-            return this.notifyLink(opposite);
-        };
-
-        let notifications: (() => Promise<boolean>)[] = this.settings.isSlave ?
-            [oppositeNotify, notify] :
-            [notify, oppositeNotify];
-
-        let result = true;
-        for (let notification of notifications) {
-            result = result && await notification();
-        }
-        return result;
-    }
 }
 
 export class Reference<P extends ModelObject, C extends ModelObject> extends OneBase<P, C> {
+
+    public get key(): string {
+        if (this.loaded) {
+            return this.oppositeValue.oid;
+        } else if (this.settings.key) {
+            return this.owner.data[this.settings.key];
+        } else {
+            return null;
+        }
+    }
+
     protected doLink(opposite: C): void {
         this.loaded = true;
         this.oppositeValue = opposite;
@@ -150,30 +195,6 @@ export class Reference<P extends ModelObject, C extends ModelObject> extends One
         if (this.settings.key) {
             this.owner.data[this.settings.key] = null;
         }
-    }
-
-    protected async notifyUnlink(opposite: C): Promise<boolean> {
-        let message = new Message(
-            MessageType.Unlink,
-            this.owner,
-            {
-                opposite: opposite,
-                propName: this.settings.roleProp,
-            });
-        let propagationOK = await this.owner.container.messageRouter.sendMessage(message);
-        return propagationOK;
-    }
-
-    protected async notifyLink(opposite: C): Promise<boolean> {
-        let message = new Message(
-            MessageType.Link,
-            this.owner,
-            {
-                opposite: opposite,
-                propName: this.settings.roleProp,
-            });
-        let propagationOK = await this.owner.container.messageRouter.sendMessage(message);
-        return propagationOK;
     }
 
     protected async load(): Promise<boolean> {
@@ -192,12 +213,17 @@ export class Reference<P extends ModelObject, C extends ModelObject> extends One
 }
 
 export class HasOne<P extends ModelObject, C extends ModelObject> extends Reference<P, C> {
+
+    public constructor(owner: P, settings: IRelationSettings<P, C>) {
+        settings.isSlave = false;
+        super(owner, settings);
+        this.isComposition = true;
+    }
+
     protected doLink(opposite: C): void {
         this.loaded = true;
         this.oppositeValue = opposite;
-        if (opposite) {
-            this.owner.data[this.settings.roleProp] = opposite.data;
-        }
+        this.owner.data[this.settings.roleProp] = opposite ? opposite.data : null;
     }
 
     protected doUnlink(opposite: C): void {
@@ -224,5 +250,103 @@ export class HasOne<P extends ModelObject, C extends ModelObject> extends Refere
             }
         }
         return this.loaded;
+    }
+}
+
+export class ManyBase<P extends ModelObject, C extends ModelObject> extends Relation<P, C> {
+    protected items: Array<C>;
+
+    public constructor(owner: P, settings: IRelationSettings<P, C>) {
+        super(owner, settings);
+        this.isMany = true;
+
+        this.unload();
+    }
+
+    public unload(): void {
+        this.items = new Array<C>();
+        this.loaded = false;
+    }
+
+    public async link(opposite: C): Promise<boolean> {
+        if (this.contains(opposite)) {
+            return true;
+        }
+        let oppositeRole = this.getOppositeRole(opposite) as any;
+        if (oppositeRole && oppositeRole.key !== this.owner.oid) {
+            throw new Error('Opposite is linked to another object');
+        }
+        return this.internalLink(opposite);
+    }
+
+    public async unlink(opposite: C): Promise<boolean> {
+        if (!this.contains(opposite)) {
+            return true;
+        }
+        return this.internalUnlink(opposite);
+    }
+
+    protected doLink(opposite: C): void {
+        if (this.contains(opposite)) {
+            return;
+        }
+
+        if (this.loaded) {
+            this.items.push(opposite);
+        }
+    }
+
+    protected doUnlink(opposite: C): void {
+        if (this.contains(opposite)) {
+            return;
+        }
+        if (this.loaded) {
+            let index = this.items.indexOf(opposite);
+            if (index >= 0) {
+                this.items.splice(index, 1);
+            }
+        }
+    }
+
+    protected contains(opposite: C): boolean {
+        if (opposite == null) {
+            return false;
+        }
+        let oppositeRole = this.getOppositeRole(opposite) as Reference<C, P>;
+        if (oppositeRole.key === this.owner.oid) {
+            return true;
+        }
+        return false;
+    }
+}
+
+export class HasMany<P extends ModelObject, C extends ModelObject> extends ManyBase<P, C> {
+
+    public constructor(owner: P, settings: IRelationSettings<P, C>) {
+        super(owner, settings);
+        this.isMany = true;
+        this.isComposition = true;
+    }
+
+    protected doLink(opposite: C): void {
+        super.doLink(opposite);
+        let relationData = this.owner.data[this.settings.roleProp] as any[];
+        if (!relationData) {
+            this.owner.data[this.settings.roleProp] = [opposite.data];
+        } else {
+            relationData.push(opposite.data);
+        }
+    }
+
+    protected doUnlink(opposite: C): void {
+        super.doUnlink(opposite);
+        let relationData = this.owner.data[this.settings.roleProp] as any[];
+        if (relationData) {
+            for (let i = 0; i < relationData.length; i++) {
+                if (relationData[i][ModelObject.oidProp] === opposite) {
+                    relationData.slice(i, 1);
+                }
+            }
+        }
     }
 }
