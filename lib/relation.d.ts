@@ -34,19 +34,19 @@ export declare abstract class OneBase<P extends ModelObject, C extends ModelObje
     getOpposite(): Promise<C>;
     link(opposite: C): Promise<IRuleExecutionResult[]>;
     unlink(): Promise<IRuleExecutionResult[]>;
-    protected abstract load(): Promise<boolean>;
+    protected abstract load(): Promise<C>;
 }
 export declare class Reference<P extends ModelObject, C extends ModelObject> extends OneBase<P, C> {
     readonly key: string;
     protected doLink(opposite: C): void;
     protected doUnlink(opposite: C): void;
-    protected load(): Promise<boolean>;
+    protected load(): Promise<C>;
 }
 export declare class HasOne<P extends ModelObject, C extends ModelObject> extends Reference<P, C> {
     constructor(owner: P, settings: IRelationSettings<P, C>);
     protected doLink(opposite: C): void;
     protected doUnlink(opposite: C): void;
-    protected load(): Promise<boolean>;
+    protected load(): Promise<C>;
 }
 export declare abstract class ManyBase<P extends ModelObject, C extends ModelObject> extends Relation<P, C> {
     protected items: Array<C>;

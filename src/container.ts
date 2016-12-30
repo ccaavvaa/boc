@@ -19,6 +19,7 @@ export class Container {
         let id = await this.objectStore.getNewId(classInfo);
         let o = new constr(this);
         await o.initNew(id);
+        this.objectStore.Store(o);
         return o;
     }
 

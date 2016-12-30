@@ -173,7 +173,7 @@ export abstract class OneBase<P extends ModelObject, C extends ModelObject> exte
         return this.notifyRelationChange(MessageType.Unlink, opposite);
     }
 
-    protected abstract load(): Promise<boolean>;
+    protected abstract load(): Promise<C>;
 }
 
 export class Reference<P extends ModelObject, C extends ModelObject> extends OneBase<P, C> {
@@ -204,7 +204,7 @@ export class Reference<P extends ModelObject, C extends ModelObject> extends One
         }
     }
 
-    protected async load(): Promise<boolean> {
+    protected async load(): Promise<C> {
         if (!this.loaded) {
             let referenceId = this.owner.data[this.settings.key] as any;
             if (referenceId == null) {
@@ -215,7 +215,7 @@ export class Reference<P extends ModelObject, C extends ModelObject> extends One
             }
             this.loaded = true;
         }
-        return this.loaded;
+        return this.oppositeValue;
     }
 }
 
@@ -239,7 +239,7 @@ export class HasOne<P extends ModelObject, C extends ModelObject> extends Refere
         this.owner.data[this.settings.roleProp] = null;
     }
 
-    protected async load(): Promise<boolean> {
+    protected async load(): Promise<C> {
         if (!this.loaded) {
             let oppositeData: any = this.owner.data[this.settings.roleProp];
             if (oppositeData == null) {
@@ -250,13 +250,13 @@ export class HasOne<P extends ModelObject, C extends ModelObject> extends Refere
                 // check if allready in memory
                 let opposite = this.owner.container.objectStore.getInMemById<C>(oppositeId);
                 if (opposite == null) { // not in memory
-                    opposite = new this.settings.oppositeConstr(oppositeData);
+                    opposite = await this.owner.container.load(this.settings.oppositeConstr, oppositeData);
                 }
                 this.oppositeValue = opposite;
                 this.loaded = true;
             }
         }
-        return this.loaded;
+        return this.oppositeValue;
     }
 }
 
