@@ -1,4 +1,5 @@
 import { MessageType, Trigger } from './message';
+import { ModelObject, ModelObjectConstructor } from './model-object';
 import { RuleDeclaration } from './rule';
 export interface IRulesForTrigger {
     trigger: Trigger;
@@ -12,6 +13,8 @@ export declare class ClassInfo {
     private registerRuleDeclaration(ruleDeclaration);
 }
 export declare class ModelMetadata {
-    classesByConstr: Map<any, ClassInfo>;
+    readonly classesByConstr: Map<any, ClassInfo>;
+    getClassInfo<T extends ModelObject>(constr: ModelObjectConstructor<T>): ClassInfo;
     registerClass(constr: any): void;
+    registerClasses(...constructors: any[]): void;
 }

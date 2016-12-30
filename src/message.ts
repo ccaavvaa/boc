@@ -1,3 +1,4 @@
+import { RuleDeclaration } from './rule';
 import * as _ from 'lodash';
 
 export enum MessageType {
@@ -39,14 +40,21 @@ export class Trigger implements ITrigger {
     }
 }
 
+export interface IRuleExecutionResult {
+    error?: Error;
+    message: Message;
+    result?: any;
+    rule: RuleDeclaration;
+}
+
 export class Message {
     public constructor(
         public readonly kind: MessageType,
         public readonly target: any,
         public readonly body: any = undefined,
         public readonly constr: Function = undefined) {
-            if (constr === undefined) {
-                this.constr = target.constructor;
+        if (constr === undefined) {
+            this.constr = target.constructor;
         }
     }
 

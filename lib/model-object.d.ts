@@ -1,14 +1,16 @@
 import { Container } from './container';
-import { Message } from './message';
+import { IRuleExecutionResult, Message } from './message';
+export declare type ModelObjectConstructor<T extends ModelObject> = new (container: Container) => T;
+export declare type IdType = string;
 export declare class ModelObject {
     static readonly oidProp: string;
     readonly container: Container;
-    readonly oid: string;
+    readonly oid: IdType;
     data: any;
-    protected constructor(container: Container);
-    init(data: any): void;
-    initNew(oid: string): Promise<boolean>;
-    sendMessage(message: Message): Promise<boolean>;
+    protected constructor(acontainer: Container);
+    init(data: any, isNew?: boolean): Promise<IRuleExecutionResult[]>;
+    initNew(oid: IdType): Promise<IRuleExecutionResult[]>;
+    sendMessage(message: Message): Promise<IRuleExecutionResult[]>;
     protected getProp(propName: string): any;
-    protected setProp(propName: string, value: any): Promise<boolean>;
+    protected setProp(propName: string, value: any): Promise<IRuleExecutionResult[]>;
 }

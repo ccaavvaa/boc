@@ -1,4 +1,4 @@
-import { Message } from './message';
+import { IRuleExecutionResult, Message } from './message';
 import { ModelMetadata } from './model-metadata';
 import { RuleDeclaration } from './rule';
 export declare class MessageRouterStackElement {
@@ -10,6 +10,6 @@ export declare class MessageRouter {
     readonly metadata: ModelMetadata;
     private stack;
     constructor(metadata: ModelMetadata);
-    sendMessage(message: Message): Promise<boolean>;
+    sendMessage(message: Message): Promise<IRuleExecutionResult[]>;
     private dispatchMessage(message, ruleDeclaration);
 }

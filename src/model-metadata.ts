@@ -1,4 +1,5 @@
 import { MessageType, Trigger } from './message';
+import { ModelObject, ModelObjectConstructor } from './model-object';
 import { RuleDeclaration, ruleDeclarations } from './rule';
 
 export interface IRulesForTrigger {
@@ -45,14 +46,28 @@ export class ClassInfo {
 }
 
 export class ModelMetadata {
-    public classesByConstr: Map<any, ClassInfo> = new Map<any, ClassInfo>();
+    public readonly classesByConstr: Map<any, ClassInfo> = new Map<any, ClassInfo>();
 
-    public registerClass(constr: any) {
+    public getClassInfo<T extends ModelObject>(constr: ModelObjectConstructor<T>): ClassInfo {
+        let classInfo = this.classesByConstr.get(constr);
+        if (classInfo == null) {
+            throw new Error('Class not registered');
+        }
+        return classInfo;
+    }
+
+    public registerClass(constr: any): void {
         let classInfo = this.classesByConstr.get(constr);
         if (classInfo !== undefined) {
             return;
         }
         classInfo = new ClassInfo(constr);
         this.classesByConstr.set(constr, classInfo);
+    }
+
+    public registerClasses(...constructors: any[]) {
+        for (let constr of constructors) {
+            this.registerClass(constr);
+        }
     }
 }

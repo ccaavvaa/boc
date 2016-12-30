@@ -1,5 +1,5 @@
 import { Rule } from '../decorators';
-import { Message, MessageType } from '../message';
+import { IRuleExecutionResult, Message, MessageType } from '../message';
 import { MessageRouter } from '../message-router';
 
 export class Base {
@@ -23,7 +23,7 @@ export class Base {
         }
     }
 
-    protected async setProp(propName: string, value: any): Promise<boolean> {
+    protected async setProp(propName: string, value: any): Promise<IRuleExecutionResult[]> {
         let oldValue = this.data[propName];
         this.data[propName] = value;
         let message = new Message(
@@ -33,7 +33,7 @@ export class Base {
                 oldValue: oldValue,
                 propName: propName,
             }
-            );
+        );
         let propagationOK = await this.router.sendMessage(message);
         return propagationOK;
     }
@@ -49,7 +49,7 @@ export class A extends Base {
         return Promise.resolve<string>(this.data.a);
     }
 
-    public set_a(value: string): Promise<boolean> {
+    public set_a(value: string): Promise<IRuleExecutionResult[]> {
         return this.setProp('a', value);
     }
 
@@ -57,7 +57,7 @@ export class A extends Base {
         return Promise.resolve<string>(this.data.b);
     }
 
-    public set_b(value: string): Promise<boolean> {
+    public set_b(value: string): Promise<IRuleExecutionResult[]> {
         return this.setProp('b', value);
     }
 
@@ -65,7 +65,7 @@ export class A extends Base {
         return Promise.resolve<string>(this.data.c);
     }
 
-    public set_c(value: string): Promise<boolean> {
+    public set_c(value: string): Promise<IRuleExecutionResult[]> {
         return this.setProp('c', value);
     }
 
@@ -75,7 +75,7 @@ export class A extends Base {
         level: 0,
         triggers: [{ kind: MessageType.ObjectInit }],
     })
-    public async init(msg: Message): Promise<boolean> {
+    public async init(msg: Message): Promise<IRuleExecutionResult[]> {
         let result = await this.set_a('initial a');
         return result;
     }
@@ -95,7 +95,7 @@ export class A extends Base {
             },
         ],
     })
-    public async calculateC(msg: Message): Promise<boolean> {
+    public async calculateC(msg: Message): Promise<void> {
         let aa = await this.get_a();
         let bb = await this.get_b();
         let x: string[] = [aa, bb];
@@ -109,7 +109,6 @@ export class A extends Base {
             return p;
         }, '');
 
-        let result = await this.set_c(newValue);
-        return result;
+        await this.set_c(newValue);
     }
 }

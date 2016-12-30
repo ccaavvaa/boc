@@ -1,7 +1,7 @@
 import { Container } from '../container';
 import { ModelMetadata } from '../model-metadata';
 import { ModelObject } from '../model-object';
-import { A, B, C } from './relation.sample';
+import { A, B, C, D, E } from './relation.sample';
 import * as chai from 'chai';
 import 'mocha';
 
@@ -12,9 +12,7 @@ describe('Reference A=>B', () => {
     let container: Container;
     before(() => {
         let metadata: ModelMetadata = new ModelMetadata();
-        metadata.registerClass(A);
-        metadata.registerClass(B);
-        metadata.registerClass(C);
+        metadata.registerClasses(A, B, C, D, E);
         let containerSettings = {
             modelMetadata: metadata,
             objectStore: objectStore,
@@ -141,7 +139,7 @@ describe('Reference A=>B', () => {
                 return true;
             };
             return test();
-        });*/
+        });
     it('Composition loading', () => {
         let test = async (): Promise<boolean> => {
             let a = new A(container);
@@ -177,6 +175,35 @@ describe('Reference A=>B', () => {
             a.c.unload();
             let c2 = await a.c.getOpposite();
             expect(c2).deep.equal(c);
+            return true;
+        };
+        return test();
+    });*/
+
+    it('HasMany', () => {
+        let test = async (): Promise<boolean> => {
+            let d1 = new D(container);
+            await d1.initNew('d1');
+            let e1 = new E(container);
+            await e1.initNew('e1');
+
+            objectStore.getInMemById = (oid: string) => {
+                switch (oid) {
+                    case 'd1': return d1;
+                    case 'e1': return e1;
+                    case 'd2':
+                    default: return null;
+                }
+            };
+            objectStore.getOne = async (filter: any): Promise<ModelObject> => {
+                let oid: string = filter.oid;
+                return objectStore.getInMemById(oid);
+            };
+            await e1.d.link(d1);
+            expect(e1.idD).equals(d1.oid);
+            let x = await e1.d.getOpposite();
+            expect(x).deep.equal(d1);
+
             return true;
         };
         return test();

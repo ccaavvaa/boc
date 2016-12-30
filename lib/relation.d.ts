@@ -1,4 +1,4 @@
-import { MessageType } from './message';
+import { IRuleExecutionResult, MessageType } from './message';
 import { ModelObject } from './model-object';
 export interface IRelationSettings<P extends ModelObject, C extends ModelObject> {
     roleProp: keyof P;
@@ -20,20 +20,20 @@ export declare abstract class Relation<P extends ModelObject, C extends ModelObj
     protected constructor(owner: P, settings: IRelationSettings<P, C>);
     getOppositeRole(opposite: C): Relation<C, P>;
     unload(): void;
-    protected notifyRelationChange(messageType: MessageType, opposite: C, oldOpposite?: C): Promise<boolean>;
-    protected notifyRoleChange(messageType: MessageType, opposite: C): Promise<boolean>;
+    protected notifyRelationChange(messageType: MessageType, opposite: C, oldOpposite?: C): Promise<IRuleExecutionResult[]>;
+    protected notifyRoleChange(messageType: MessageType, opposite: C): Promise<IRuleExecutionResult[]>;
     protected abstract doLink(opposite: C): void;
     protected abstract doUnlink(opposite: C): void;
-    protected internalLink(opposite: C, oldOpposite?: C): Promise<boolean>;
-    protected internalUnlink(opposite: C): Promise<boolean>;
+    protected internalLink(opposite: C, oldOpposite?: C): Promise<IRuleExecutionResult[]>;
+    protected internalUnlink(opposite: C): Promise<IRuleExecutionResult[]>;
 }
 export declare abstract class OneBase<P extends ModelObject, C extends ModelObject> extends Relation<P, C> {
     protected oppositeValue: C;
     constructor(owner: P, settings: IRelationSettings<P, C>);
     unload(): void;
     getOpposite(): Promise<C>;
-    link(opposite: C): Promise<boolean>;
-    unlink(): Promise<boolean>;
+    link(opposite: C): Promise<IRuleExecutionResult[]>;
+    unlink(): Promise<IRuleExecutionResult[]>;
     protected abstract load(): Promise<boolean>;
 }
 export declare class Reference<P extends ModelObject, C extends ModelObject> extends OneBase<P, C> {
@@ -48,18 +48,24 @@ export declare class HasOne<P extends ModelObject, C extends ModelObject> extend
     protected doUnlink(opposite: C): void;
     protected load(): Promise<boolean>;
 }
-export declare class ManyBase<P extends ModelObject, C extends ModelObject> extends Relation<P, C> {
+export declare abstract class ManyBase<P extends ModelObject, C extends ModelObject> extends Relation<P, C> {
     protected items: Array<C>;
     constructor(owner: P, settings: IRelationSettings<P, C>);
     unload(): void;
-    link(opposite: C): Promise<boolean>;
-    unlink(opposite: C): Promise<boolean>;
+    toArray(): Promise<Array<C>>;
+    abstract load(): Promise<void>;
+    link(opposite: C): Promise<IRuleExecutionResult[]>;
+    unlink(opposite: C): Promise<IRuleExecutionResult[]>;
     protected doLink(opposite: C): void;
     protected doUnlink(opposite: C): void;
     protected contains(opposite: C): boolean;
 }
+export declare class Many<P extends ModelObject, C extends ModelObject> extends ManyBase<P, C> {
+    load(): Promise<void>;
+}
 export declare class HasMany<P extends ModelObject, C extends ModelObject> extends ManyBase<P, C> {
     constructor(owner: P, settings: IRelationSettings<P, C>);
+    load(): Promise<void>;
     protected doLink(opposite: C): void;
     protected doUnlink(opposite: C): void;
 }

@@ -1,5 +1,9 @@
 import { Container } from './container';
-import { Message, MessageType } from './message';
+import { IRuleExecutionResult, Message, MessageType } from './message';
+
+export type ModelObjectConstructor<T extends ModelObject> = new (container: Container) => T;
+
+export type IdType = string;
 
 export class ModelObject {
 
@@ -7,31 +11,32 @@ export class ModelObject {
 
     public readonly container: Container;
 
-    public get oid(): string {
+    public get oid(): IdType {
         return this.data.oid;
     }
 
     // data object
     public data: any;
 
-    protected constructor(container: Container) {
-        this.container = container;
+    protected constructor(acontainer: Container) {
+        this.container = acontainer;
     }
 
-    public init(data: any): void {
+    public init(data: any, isNew?: boolean): Promise<IRuleExecutionResult[]> {
         this.data = data;
+        let message = new Message(MessageType.ObjectInit, this, {
+            isNew: isNew,
+        });
+        return this.container.messageRouter.sendMessage(message);
     }
 
-    public async initNew(oid: string): Promise<boolean> {
-        this.data = {
-            'oid': oid,
-        };
-        let message = new Message(MessageType.ObjectInit, this);
-        let propagationOK = await this.container.messageRouter.sendMessage(message);
-        return propagationOK;
+    public initNew(oid: IdType): Promise<IRuleExecutionResult[]> {
+        let data: any = {};
+        data[ModelObject.oidProp] = oid;
+        return this.init(data, true);
     }
 
-    public sendMessage(message: Message): Promise<boolean> {
+    public sendMessage(message: Message): Promise<IRuleExecutionResult[]> {
         return this.container.messageRouter.sendMessage(message);
     }
 
@@ -42,7 +47,7 @@ export class ModelObject {
         return this.data[propName];
     }
 
-    protected setProp(propName: string, value: any): Promise<boolean> {
+    protected setProp(propName: string, value: any): Promise<IRuleExecutionResult[]> {
         let oldValue = this.data[propName];
         this.data[propName] = value;
         let message = new Message(

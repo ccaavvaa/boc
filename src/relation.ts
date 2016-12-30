@@ -1,5 +1,5 @@
 // import { Container } from './container';
-import { Message, MessageType } from './message';
+import { IRuleExecutionResult, Message, MessageType } from './message';
 // import { MessageRouter } from './message-router';
 import { ModelObject } from './model-object';
 // import { ModelMetadata } from './model-metadata';
@@ -51,11 +51,13 @@ export abstract class Relation<P extends ModelObject, C extends ModelObject> {
         this.loaded = false;
     }
 
-    protected async notifyRelationChange(messageType: MessageType, opposite: C, oldOpposite?: C): Promise<boolean> {
+    protected async notifyRelationChange(
+        messageType: MessageType,
+        opposite: C, oldOpposite?: C): Promise<IRuleExecutionResult[]> {
         let oppositeRole = this.getOppositeRole(opposite);
         let oldOppositeRole = this.getOppositeRole(oldOpposite);
 
-        type Notifier = () => Promise<boolean>;
+        type Notifier = () => Promise<IRuleExecutionResult[]>;
         let oldOppositeNotifier: Notifier = oldOppositeRole ? () =>
             oppositeRole.notifyRoleChange(MessageType.Unlink, this.owner) : null;
         let oppositeNotifier: Notifier = oppositeRole ? () =>
@@ -64,16 +66,21 @@ export abstract class Relation<P extends ModelObject, C extends ModelObject> {
         let roleNotifiers: Array<Notifier> = this.settings.isSlave ?
             [oldOppositeNotifier, oppositeNotifier, selfNotifier] :
             [oldOppositeNotifier, selfNotifier, oppositeNotifier];
-        let result: boolean = true;
+
+        let result: IRuleExecutionResult[];
+
         for (let notifier of roleNotifiers) {
             if (notifier) {
-                result = result && await notifier();
+                let executionsResult = await notifier();
+                if (executionsResult) {
+                    result = result.concat(executionsResult);
+                }
             }
         }
         return result;
     }
 
-    protected async notifyRoleChange(messageType: MessageType, opposite: C): Promise<boolean> {
+    protected async notifyRoleChange(messageType: MessageType, opposite: C): Promise<IRuleExecutionResult[]> {
         let message = new Message(
             messageType,
             this.owner,
@@ -89,7 +96,7 @@ export abstract class Relation<P extends ModelObject, C extends ModelObject> {
 
     protected abstract doUnlink(opposite: C): void;
 
-    protected internalLink(opposite: C, oldOpposite?: C): Promise<boolean> {
+    protected internalLink(opposite: C, oldOpposite?: C): Promise<IRuleExecutionResult[]> {
         this.doLink(opposite);
         let oppositeRole = this.getOppositeRole(opposite);
         if (oppositeRole) {
@@ -99,7 +106,7 @@ export abstract class Relation<P extends ModelObject, C extends ModelObject> {
         return this.notifyRelationChange(MessageType.Link, opposite, oldOpposite);
     }
 
-    protected internalUnlink(opposite: C) {
+    protected internalUnlink(opposite: C): Promise<IRuleExecutionResult[]> {
         this.doUnlink(opposite);
         let oppositeRole = this.getOppositeRole(opposite);
         if (oppositeRole) {
@@ -128,11 +135,11 @@ export abstract class OneBase<P extends ModelObject, C extends ModelObject> exte
         return this.oppositeValue;
     }
 
-    public async link(opposite: C): Promise<boolean> {
+    public async link(opposite: C): Promise<IRuleExecutionResult[]> {
         let currentOpposite = this.loaded ? this.oppositeValue : await this.getOpposite();
 
         if (currentOpposite === opposite) {
-            return true;
+            return null;
         }
 
         // opposite is linked to another ?
@@ -153,7 +160,7 @@ export abstract class OneBase<P extends ModelObject, C extends ModelObject> exte
         return this.internalLink(opposite, currentOpposite);
     }
 
-    public async unlink(): Promise<boolean> {
+    public async unlink(): Promise<IRuleExecutionResult[]> {
         let opposite = this.loaded ? this.oppositeValue : await this.getOpposite();
         let oppositeRole = this.getOppositeRole(opposite);
         if (opposite) {
@@ -253,7 +260,7 @@ export class HasOne<P extends ModelObject, C extends ModelObject> extends Refere
     }
 }
 
-export class ManyBase<P extends ModelObject, C extends ModelObject> extends Relation<P, C> {
+export abstract class ManyBase<P extends ModelObject, C extends ModelObject> extends Relation<P, C> {
     protected items: Array<C>;
 
     public constructor(owner: P, settings: IRelationSettings<P, C>) {
@@ -268,9 +275,18 @@ export class ManyBase<P extends ModelObject, C extends ModelObject> extends Rela
         this.loaded = false;
     }
 
-    public async link(opposite: C): Promise<boolean> {
+    public async toArray(): Promise<Array<C>> {
+        if (!this.loaded) {
+            await this.load();
+        }
+        return this.items.slice(0);
+    }
+
+    public abstract load(): Promise<void>;
+
+    public async link(opposite: C): Promise<IRuleExecutionResult[]> {
         if (this.contains(opposite)) {
-            return true;
+            return null;
         }
         let oppositeRole = this.getOppositeRole(opposite) as any;
         if (oppositeRole && oppositeRole.key !== this.owner.oid) {
@@ -279,9 +295,9 @@ export class ManyBase<P extends ModelObject, C extends ModelObject> extends Rela
         return this.internalLink(opposite);
     }
 
-    public async unlink(opposite: C): Promise<boolean> {
+    public async unlink(opposite: C): Promise<IRuleExecutionResult[]> {
         if (!this.contains(opposite)) {
-            return true;
+            return null;
         }
         return this.internalUnlink(opposite);
     }
@@ -320,12 +336,42 @@ export class ManyBase<P extends ModelObject, C extends ModelObject> extends Rela
     }
 }
 
+export class Many<P extends ModelObject, C extends ModelObject> extends ManyBase<P, C> {
+    public async load(): Promise<void> {
+        if (!this.loaded) {
+            let filter = ObjectFilter.forKey<C>(this.settings.oppositeKey, this.owner.oid);
+            this.items = await this.owner.container.objectStore.getMany<C>(filter);
+            this.loaded = true;
+        }
+    }
+}
+
 export class HasMany<P extends ModelObject, C extends ModelObject> extends ManyBase<P, C> {
 
     public constructor(owner: P, settings: IRelationSettings<P, C>) {
         super(owner, settings);
         this.isMany = true;
         this.isComposition = true;
+    }
+
+    public async load(): Promise<void> {
+        if (!this.loaded) {
+            let relationData = this.owner.data[this.settings.roleProp] as any[];
+            if (!relationData) {
+                this.items = [];
+            } else {
+                for (let item of relationData) {
+                    let oppositeId = item.oid;
+                    let opposite = this.owner.container.objectStore.getInMemById<C>(oppositeId);
+                    if (!opposite) {
+                        opposite = new this.settings.oppositeConstr(this.owner.container);
+                        opposite.init(item);
+                    }
+                    this.items.push(opposite);
+                }
+            }
+            this.loaded = true;
+        }
     }
 
     protected doLink(opposite: C): void {
@@ -342,10 +388,9 @@ export class HasMany<P extends ModelObject, C extends ModelObject> extends ManyB
         super.doUnlink(opposite);
         let relationData = this.owner.data[this.settings.roleProp] as any[];
         if (relationData) {
-            for (let i = 0; i < relationData.length; i++) {
-                if (relationData[i][ModelObject.oidProp] === opposite) {
-                    relationData.slice(i, 1);
-                }
+            let index = relationData.indexOf(opposite);
+            if (index >= 0) {
+                relationData.splice(index, 1);
             }
         }
     }

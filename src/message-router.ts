@@ -1,4 +1,4 @@
-import { Message } from './message';
+import { IRuleExecutionResult, Message } from './message';
 import { ModelMetadata } from './model-metadata';
 import { RuleDeclaration } from './rule';
 import * as _ from 'lodash';
@@ -15,14 +15,17 @@ export class MessageRouter {
 
     constructor(public readonly metadata: ModelMetadata) { }
 
-    public async sendMessage(message: Message): Promise<boolean> {
+    public async sendMessage(message: Message): Promise<IRuleExecutionResult[]> {
         let classInfo = this.metadata.classesByConstr.get(message.constr);
-        if (classInfo === undefined) {
+        if (!classInfo) {
             throw new Error('Class not registered: ${message.constr.name}');
         }
+
+        let result: IRuleExecutionResult[] = null;
+
         let triggersRules = classInfo.rulesByType.get(message.kind);
-        if (triggersRules === undefined) {
-            return true;
+        if (!triggersRules) {
+            return result;
         }
 
         let rulesToExecute = triggersRules
@@ -33,30 +36,37 @@ export class MessageRouter {
                 return n;
             }, []);
 
-        for (let i = 0, len = rulesToExecute.length; i < len; i++) {
-            let shouldContinue = await this.dispatchMessage(message, rulesToExecute[i]);
-            if (!shouldContinue) {
-                return false;
-            }
+        if (rulesToExecute.length > 0) {
+            result = [];
         }
-        return true;
+
+        for (let rule of rulesToExecute) {
+            let ruleExecutionResult = await this.dispatchMessage(message, rule);
+            result.push(ruleExecutionResult);
+        }
+        return result;
     }
 
-    private async dispatchMessage(message: Message, ruleDeclaration: RuleDeclaration): Promise<boolean> {
+    private async dispatchMessage(message: Message, ruleDeclaration: RuleDeclaration): Promise<IRuleExecutionResult> {
         this.stack.push(new MessageRouterStackElement(message, ruleDeclaration));
-        let execResult: boolean = false;
+        let result: IRuleExecutionResult = {
+            message: message,
+            rule: ruleDeclaration,
+        };
         try {
+            let execResult;
             if (ruleDeclaration.isStatic) {
                 execResult = await ruleDeclaration.rule(message.target, message);
             } else {
                 execResult = await ((ruleDeclaration.rule as Function).call(message.target, message));
             }
+            result.result = execResult;
         } catch (ex) {
-            execResult = false;
-            message.target.setError(ex);
+            result.error = ex;
+            message.target.addError(ex, ruleDeclaration);
         } finally {
             this.stack.pop();
         }
-        return execResult;
+        return result;
     }
 }

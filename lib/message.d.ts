@@ -1,3 +1,4 @@
+import { RuleDeclaration } from './rule';
 export declare enum MessageType {
     Unknown = 0,
     ObjectInit = 1,
@@ -19,6 +20,12 @@ export declare class Trigger implements ITrigger {
     body?: any;
     constructor(source: ITrigger);
     equals(other: ITrigger): boolean;
+}
+export interface IRuleExecutionResult {
+    error?: Error;
+    message: Message;
+    result?: any;
+    rule: RuleDeclaration;
 }
 export declare class Message {
     readonly kind: MessageType;

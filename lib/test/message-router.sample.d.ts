@@ -1,4 +1,4 @@
-import { Message } from '../message';
+import { IRuleExecutionResult, Message } from '../message';
 import { MessageRouter } from '../message-router';
 export declare class Base {
     protected router: MessageRouter;
@@ -6,16 +6,16 @@ export declare class Base {
     protected errors: any;
     protected constructor(router: MessageRouter);
     setError(error: any, path: string): void;
-    protected setProp(propName: string, value: any): Promise<boolean>;
+    protected setProp(propName: string, value: any): Promise<IRuleExecutionResult[]>;
 }
 export declare class A extends Base {
     constructor(router: MessageRouter);
     get_a(): Promise<string>;
-    set_a(value: string): Promise<boolean>;
+    set_a(value: string): Promise<IRuleExecutionResult[]>;
     get_b(): Promise<string>;
-    set_b(value: string): Promise<boolean>;
+    set_b(value: string): Promise<IRuleExecutionResult[]>;
     get_c(): Promise<string>;
-    set_c(value: string): Promise<boolean>;
-    init(msg: Message): Promise<boolean>;
-    calculateC(msg: Message): Promise<boolean>;
+    set_c(value: string): Promise<IRuleExecutionResult[]>;
+    init(msg: Message): Promise<IRuleExecutionResult[]>;
+    calculateC(msg: Message): Promise<void>;
 }

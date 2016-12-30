@@ -1,6 +1,6 @@
 import { Container } from '../container';
 import { ModelObject } from '../model-object';
-import { HasOne, IRelationSettings, Reference } from '../relation';
+import { HasMany, HasOne, IRelationSettings, Reference } from '../relation';
 /*
 export class ManyBase<P extends ModelObject, C extends ModelObject> {
     public items: Array<C>;
@@ -100,5 +100,36 @@ export class C extends ModelObject {
                 oppositeRoleProp: 'c',
                 roleProp: 'a',
             } as IRelationSettings<C, A>);
+    }
+}
+
+export class D extends ModelObject {
+    public readonly listE: HasMany<D, E>;
+
+    public constructor(container: Container) {
+        super(container);
+        this.listE = new HasMany<D, E>(this,
+            {
+                isSlave: false,
+                oppositeRoleProp: 'd',
+                roleProp: 'listE',
+            } as IRelationSettings<D, E>);
+    }
+}
+
+export class E extends ModelObject {
+    public readonly d: Reference<E, D>;
+    public get idD(): string {
+        return this.data.idD;
+    }
+    public constructor(container: Container) {
+        super(container);
+        this.d = new Reference<E, D>(this,
+            {
+                isSlave: true,
+                key: 'idD',
+                oppositeRoleProp: 'listE',
+                roleProp: 'd',
+            } as IRelationSettings<E, D>);
     }
 }
