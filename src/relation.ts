@@ -67,7 +67,7 @@ export abstract class Relation<P extends ModelObject, C extends ModelObject> {
             [oldOppositeNotifier, oppositeNotifier, selfNotifier] :
             [oldOppositeNotifier, selfNotifier, oppositeNotifier];
 
-        let result: IRuleExecutionResult[];
+        let result: IRuleExecutionResult[] = [];
 
         for (let notifier of roleNotifiers) {
             if (notifier) {

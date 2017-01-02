@@ -12,6 +12,6 @@ export class BocTools {
     }
 
     public static hasThrownError(rulesExecutionResults: IRuleExecutionResult[]): boolean {
-        return BocTools.thrownErrors(rulesExecutionResults).length === 0;
+        return BocTools.thrownErrors(rulesExecutionResults).length !== 0;
     }
 }
