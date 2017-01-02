@@ -11,7 +11,7 @@ export interface IRelationSettings<P extends ModelObject, C extends ModelObject>
     oppositeKey?: keyof C;
     // oppositeKey?: keyof C;
     oppositeRoleProp?: keyof C;
-    oppositeConstr?: { new (data?: any): C };
+    oppositeConstr: { new (data?: any): C };
     isSlave?: boolean;
 }
 
@@ -144,8 +144,11 @@ export abstract class OneBase<P extends ModelObject, C extends ModelObject> exte
 
         // opposite is linked to another ?
         let oppositeRole = this.getOppositeRole(opposite) as any;
-        if (oppositeRole && !oppositeRole.isMany && oppositeRole.key !== this.owner.oid) {
-            throw new Error('Opposite is linked to another object');
+        if (oppositeRole && !oppositeRole.isMany) {
+            let oppositeKey = (opposite as any)[oppositeRole.key];
+            if (oppositeKey && oppositeKey !== this.owner[ModelObject.oidProp]) {
+                throw new Error('Opposite is linked to another object');
+            }
         }
 
         if (currentOpposite) {

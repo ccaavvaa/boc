@@ -5,7 +5,7 @@ export interface IRelationSettings<P extends ModelObject, C extends ModelObject>
     key?: keyof P;
     oppositeKey?: keyof C;
     oppositeRoleProp?: keyof C;
-    oppositeConstr?: {
+    oppositeConstr: {
         new (data?: any): C;
     };
     isSlave?: boolean;

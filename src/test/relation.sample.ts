@@ -17,6 +17,7 @@ export class A extends ModelObject {
         this.refB = new Reference<A, B>(this,
             {
                 key: 'idB',
+                oppositeConstr: B,
                 roleProp: 'refB',
             } as IRelationSettings<A, B>);
         this.c = new HasOne<A, C>(this,
@@ -50,6 +51,7 @@ export class C extends ModelObject {
             {
                 isSlave: true,
                 key: 'idA',
+                oppositeConstr: A,
                 oppositeRoleProp: 'c',
                 roleProp: 'a',
             } as IRelationSettings<C, A>);
@@ -64,6 +66,7 @@ export class D extends ModelObject {
         this.listE = new HasMany<D, E>(this,
             {
                 isSlave: false,
+                oppositeConstr: E,
                 oppositeRoleProp: 'd',
                 roleProp: 'listE',
             } as IRelationSettings<D, E>);
@@ -81,6 +84,7 @@ export class E extends ModelObject {
             {
                 isSlave: true,
                 key: 'idD',
+                oppositeConstr: D,
                 oppositeRoleProp: 'listE',
                 roleProp: 'd',
             } as IRelationSettings<E, D>);
