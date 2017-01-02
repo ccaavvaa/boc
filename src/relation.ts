@@ -211,7 +211,7 @@ export class Reference<P extends ModelObject, C extends ModelObject> extends One
                 this.oppositeValue = null;
             } else {
                 let filter = ObjectFilter.forKey<C>(ModelObject.oidProp, referenceId);
-                this.oppositeValue = await this.owner.container.objectStore.getOne<C>(filter);
+                this.oppositeValue = await this.owner.container.getOne<C>(this.settings.oppositeConstr, filter);
             }
             this.loaded = true;
         }
@@ -246,12 +246,7 @@ export class HasOne<P extends ModelObject, C extends ModelObject> extends Refere
                 this.oppositeValue = null;
                 this.loaded = true;
             } else {
-                let oppositeId = oppositeData[ModelObject.oidProp];
-                // check if allready in memory
-                let opposite = this.owner.container.objectStore.getInMemById<C>(oppositeId);
-                if (opposite == null) { // not in memory
-                    opposite = await this.owner.container.load(this.settings.oppositeConstr, oppositeData);
-                }
+                let opposite = await this.owner.container.getObject<C>(this.settings.oppositeConstr, oppositeData);
                 this.oppositeValue = opposite;
                 this.loaded = true;
             }
@@ -340,7 +335,7 @@ export class Many<P extends ModelObject, C extends ModelObject> extends ManyBase
     public async load(): Promise<void> {
         if (!this.loaded) {
             let filter = ObjectFilter.forKey<C>(this.settings.oppositeKey, this.owner.oid);
-            this.items = await this.owner.container.objectStore.getMany<C>(filter);
+            this.items = await this.owner.container.getMany<C>(this.settings.oppositeConstr, filter);
             this.loaded = true;
         }
     }
@@ -361,12 +356,7 @@ export class HasMany<P extends ModelObject, C extends ModelObject> extends ManyB
                 this.items = [];
             } else {
                 for (let item of relationData) {
-                    let oppositeId = item.oid;
-                    let opposite = this.owner.container.objectStore.getInMemById<C>(oppositeId);
-                    if (!opposite) {
-                        opposite = new this.settings.oppositeConstr(this.owner.container);
-                        opposite.init(item);
-                    }
+                    let opposite = await this.owner.container.getObject(this.settings.oppositeConstr, item);
                     this.items.push(opposite);
                 }
             }

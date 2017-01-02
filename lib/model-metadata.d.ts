@@ -7,7 +7,9 @@ export interface IRulesForTrigger {
 }
 export declare class ClassInfo {
     readonly constr: any;
+    dataStoreKey: any;
     readonly rulesByType: Map<MessageType, IRulesForTrigger[]>;
+    private _datastoreKey;
     constructor(constr: any);
     registerRules(): void;
     private registerRuleDeclaration(ruleDeclaration);

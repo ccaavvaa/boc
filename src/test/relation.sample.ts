@@ -1,54 +1,7 @@
 import { Container } from '../container';
 import { ModelObject } from '../model-object';
 import { HasMany, HasOne, IRelationSettings, Reference } from '../relation';
-/*
-export class ManyBase<P extends ModelObject, C extends ModelObject> {
-    public items: Array<C>;
 
-    protected owner: any;
-    protected settings: IManySettings<P, C>;
-
-    constructor(owner: P, settings: IManySettings<P, C>) {
-        this.owner = owner;
-        this.settings = settings;
-    }
-
-    public Add(opposite: C) {
-        opposite[this.settings.fk] = this.owner.id;
-        this.items.push(opposite);
-    }
-}
-export class HasMany<P extends Base, C extends Base> extends ManyBase<P, C> {
-    public items: Array<C>;
-
-    private get dataArray(): any[] {
-        return this.owner.dataObject[this.settings.prop] as any[];
-    }
-
-    constructor(owner: P, settings: IManySettings<P, C>) {
-        super(owner, settings);
-        this.Load();
-    }
-
-    public Add(opposite: C) {
-        opposite[this.settings.fk] = this.owner.id;
-        this.items.push(opposite);
-        this.owner.dataObject[this.settings.prop].push(opposite.dataObject);
-    }
-
-    public Load(): void {
-        this.items = new Array<C>();
-        let dataArray = this.dataArray;
-        if (dataArray) {
-            for (let data of dataArray) {
-                let opposite = new this.settings.constr(data);
-                this.items.push(opposite);
-            }
-        }
-    }
-}
-
-*/
 export class A extends ModelObject {
 
     public readonly c: HasOne<A, C>;

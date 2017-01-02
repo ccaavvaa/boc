@@ -9,8 +9,16 @@ export interface IRulesForTrigger {
 
 export class ClassInfo {
     public readonly constr: any;
+    public get dataStoreKey(): any {
+        return this._datastoreKey ? this._datastoreKey : this.constr.name;
+    }
+    public set dataStoreKey(value: any) {
+        this._datastoreKey = value;
+    }
+
     public readonly rulesByType: Map<MessageType, IRulesForTrigger[]> = new Map<MessageType, IRulesForTrigger[]>();
 
+    private _datastoreKey: any;
     constructor(constr: any) {
         this.constr = constr;
     }

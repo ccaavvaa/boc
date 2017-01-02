@@ -24,6 +24,7 @@ export class ModelObject {
 
     public init(data: any, isNew?: boolean): Promise<IRuleExecutionResult[]> {
         this.data = data;
+        this.container.store(this);
         let message = new Message(MessageType.ObjectInit, this, {
             isNew: isNew,
         });
