@@ -18,8 +18,11 @@ export class ModelObject {
     // data object
     public data: any;
 
-    protected constructor(acontainer: Container) {
-        this.container = acontainer;
+    public roles: any;
+
+    protected constructor(parentContainer: Container) {
+        this.container = parentContainer;
+        this.createRoles();
     }
 
     public init(data: any, isNew?: boolean): Promise<IRuleExecutionResult[]> {
@@ -59,5 +62,26 @@ export class ModelObject {
                 propName: propName,
             });
         return this.sendMessage(message);
+    }
+
+    protected async roleProp(roleName: string, value?: any): Promise<any> {
+        let role = this.roles[roleName];
+        if (value === null) {
+            await role.unlink();
+        } else if (value) {
+            await role.link(value);
+        }
+        return role.getOpposite();
+    }
+
+    protected createRoles(): void {
+        this.roles = {};
+        let ci = this.container.modelMetadata.getClassInfo(this.constructor);
+        if (ci.roles) {
+            for (let roleDeclaration of ci.roles) {
+                this.roles[roleDeclaration.settings.roleProp] =
+                    new roleDeclaration.constr(this, roleDeclaration.settings);
+            }
+        }
     }
 }

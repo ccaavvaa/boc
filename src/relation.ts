@@ -40,7 +40,10 @@ export abstract class Relation<P extends ModelObject, C extends ModelObject> {
 
     public getOppositeRole(opposite: C): Relation<C, P> {
         if (opposite && this.settings.oppositeRoleProp) {
-            let role = opposite[this.settings.oppositeRoleProp] as any;
+            let role = opposite.roles[this.settings.oppositeRoleProp] as any;
+            if (!role) {
+                role = opposite[this.settings.oppositeRoleProp] as any;
+            }
             return role as Relation<C, P>;
         }
         return null;
@@ -386,4 +389,9 @@ export class HasMany<P extends ModelObject, C extends ModelObject> extends ManyB
             }
         }
     }
+}
+
+export interface IRoleDeclaration {
+    constr: any;
+    settings: any;
 }

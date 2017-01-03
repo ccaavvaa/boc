@@ -1,4 +1,4 @@
-import { BocTools } from '../boc-tools';
+// import { BocTools } from '../boc-tools';
 import { Container } from '../container';
 import { ModelMetadata } from '../model-metadata';
 import { A, B, C, D, E } from './relation.sample';
@@ -25,11 +25,10 @@ describe('Relations', () => {
             container.clear();
             let a = await container.createNew<A>(A);
             let b = await container.createNew<B>(B);
-            let linkResult = await a.refB.link(b);
+            await a.refB(b);
 
-            expect(BocTools.hasThrownError(linkResult)).to.be.false;
             expect(a.idB).to.equal(b.oid);
-            let reference = await a.refB.getOpposite();
+            let reference = await a.refB();
             expect(reference === b).to.be.true;
         };
         return test();
@@ -39,7 +38,7 @@ describe('Relations', () => {
         let test = async (): Promise<boolean> => {
             container.clear();
             let a = await container.getOne<A>(A, { oid: 'A1' });
-            let reference = await a.refB.getOpposite();
+            let reference = await a.refB();
 
             let b = await container.getOne<B>(B, { oid: 'B1' });
             expect(reference === b).to.be.true;
@@ -54,9 +53,9 @@ describe('Relations', () => {
             let a = await container.createNew<A>(A);
             let c = await container.createNew<C>(C);
 
-            await a.c.link(c);
+            await a.c(c);
 
-            let oc = await a.c.getOpposite();
+            let oc = await a.c();
             expect(oc === c).to.true;
             expect(oc.idA).to.be.equal(a.oid);
             expect(a.data.c === c.data).to.be.true;
@@ -73,7 +72,7 @@ describe('Relations', () => {
 
             await c.a.link(a);
 
-            let oc = await a.c.getOpposite();
+            let oc = await a.c();
             expect(oc === c).to.true;
             expect(oc.idA).equals(a.oid);
             expect(a.data.c === c.data).to.be.true;
@@ -89,15 +88,15 @@ describe('Relations', () => {
             let c1 = await container.createNew<C>(C);
             let c2 = await container.createNew<C>(C);
 
-            await a.c.link(c1);
+            await a.c(c1);
             let e = null;
             try {
-                await a.c.link(c2);
+                await a.c(c2);
             } catch (ex) {
                 e = ex;
             }
             expect(e).to.be.not.null;
-            let oc = await a.c.getOpposite();
+            let oc = await a.c();
             expect(oc === c1).to.true;
             expect(oc.idA).to.be.equal(a.oid);
             expect(a.data.c === c1.data).to.be.true;
@@ -109,13 +108,13 @@ describe('Relations', () => {
     it('Composition loading', () => {
         let test = async (): Promise<boolean> => {
             let a = await container.getOne<A>(A, { oid: 'A1' });
-            let c = await a.c.getOpposite();
+            let c = await a.c();
 
             let a2 = await c.a.getOpposite();
             expect(a2).deep.equal(a);
             a2 = null;
-            a.c.unload();
-            let c2 = await a.c.getOpposite();
+            a.roles.c.unload();
+            let c2 = await a.c();
             expect(c2).deep.equal(c);
             return true;
         };

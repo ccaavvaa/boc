@@ -20,7 +20,7 @@ export class TestDecorator2 {
             { constr: TestDecorator2, kind: MessageType.PropChanged },
         ],
     })
-    public static rule2(target: any): Promise<void> {
+    public static rule2(target: TestDecorator1): Promise<void> {
         return Promise.resolve();
     }
 }

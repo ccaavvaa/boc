@@ -1,12 +1,31 @@
 import { Container } from '../container';
 import { ModelObject } from '../model-object';
-import { HasMany, HasOne, IRelationSettings, Reference } from '../relation';
+import { HasMany, HasOne, IRelationSettings, IRoleDeclaration, Reference } from '../relation';
 
 export class A extends ModelObject {
+    public static defineRoles(): Array<IRoleDeclaration> {
+        return [
+            {
+                constr: HasOne,
+                settings: {
+                    oppositeConstr: C,
+                    oppositeKey: 'idA',
+                    oppositeRoleProp: 'a',
+                    roleProp: 'c',
+                } as IRelationSettings<A, C>,
+            },
+            {
+                constr: Reference,
+                settings: {
+                    key: 'idB',
+                    oppositeConstr: B,
+                    roleProp: 'refB',
+                } as IRelationSettings<A, B>,
+            },
+        ];
+    }
 
-    public readonly c: HasOne<A, C>;
-
-    public readonly refB: Reference<A, B>;
+    // public readonly refB: Reference<A, B>;
 
     public get idB(): string {
         return this.data.idB;
@@ -14,20 +33,30 @@ export class A extends ModelObject {
 
     constructor(container: Container) {
         super(container);
+        /*
         this.refB = new Reference<A, B>(this,
             {
                 key: 'idB',
                 oppositeConstr: B,
                 roleProp: 'refB',
             } as IRelationSettings<A, B>);
-        this.c = new HasOne<A, C>(this,
+        this.roles.c = new HasOne<A, C>(this,
             {
                 oppositeConstr: C,
                 oppositeKey: 'idA',
                 oppositeRoleProp: 'a',
                 roleProp: 'c',
-            } as IRelationSettings<A, C>);
+            } as IRelationSettings<A, C>
+        );
+        */
+    }
 
+    public c(value?: C): Promise<C> {
+        return this.roleProp('c', value);
+    }
+
+    public refB(value?: B): Promise<B> {
+        return this.roleProp('refB', value);
     }
 }
 

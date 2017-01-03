@@ -1,4 +1,5 @@
 import * as sift from 'sift';
+
 export class ObjectFilter {
     public static forKey<C>(propKey: keyof C, keyValue: string): any {
         let filter: any = {};

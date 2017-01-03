@@ -7,10 +7,13 @@ export declare class ModelObject {
     readonly container: Container;
     readonly oid: IdType;
     data: any;
-    protected constructor(acontainer: Container);
+    roles: any;
+    protected constructor(parentContainer: Container);
     init(data: any, isNew?: boolean): Promise<IRuleExecutionResult[]>;
     initNew(oid: IdType): Promise<IRuleExecutionResult[]>;
     sendMessage(message: Message): Promise<IRuleExecutionResult[]>;
     protected getProp(propName: string): any;
     protected setProp(propName: string, value: any): Promise<IRuleExecutionResult[]>;
+    protected roleProp(roleName: string, value?: any): Promise<any>;
+    protected createRoles(): void;
 }

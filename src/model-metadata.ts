@@ -1,5 +1,6 @@
 import { MessageType, Trigger } from './message';
-import { ModelObject, ModelObjectConstructor } from './model-object';
+import { ModelObject } from './model-object';
+import { IRoleDeclaration } from './relation';
 import { RuleDeclaration, ruleDeclarations } from './rule';
 
 export interface IRulesForTrigger {
@@ -9,6 +10,7 @@ export interface IRulesForTrigger {
 
 export class ClassInfo {
     public readonly constr: any;
+
     public get dataStoreKey(): any {
         return this._datastoreKey ? this._datastoreKey : this.constr.name;
     }
@@ -18,12 +20,22 @@ export class ClassInfo {
 
     public readonly rulesByType: Map<MessageType, IRulesForTrigger[]> = new Map<MessageType, IRulesForTrigger[]>();
 
+    public roles: Array<IRoleDeclaration>;
+
     private _datastoreKey: any;
+
     constructor(constr: any) {
         this.constr = constr;
+        this.registerRules();
+        this.registerRoles();
     }
 
-    public registerRules(): void {
+    private registerRoles(): void {
+        if (this.constr.defineRoles) {
+            this.roles = this.constr.defineRoles();
+        }
+    }
+    private registerRules(): void {
         ruleDeclarations.forEach(rd => this.registerRuleDeclaration(rd));
     }
 
@@ -56,7 +68,7 @@ export class ClassInfo {
 export class ModelMetadata {
     public readonly classesByConstr: Map<any, ClassInfo> = new Map<any, ClassInfo>();
 
-    public getClassInfo<T extends ModelObject>(constr: ModelObjectConstructor<T>): ClassInfo {
+    public getClassInfo<T extends ModelObject>(constr: any): ClassInfo {
         let classInfo = this.classesByConstr.get(constr);
         if (classInfo == null) {
             throw new Error('Class not registered');

@@ -1,11 +1,12 @@
 import { Container } from '../container';
 import { ModelObject } from '../model-object';
-import { HasMany, HasOne, Reference } from '../relation';
+import { HasMany, IRoleDeclaration, Reference } from '../relation';
 export declare class A extends ModelObject {
-    readonly c: HasOne<A, C>;
-    readonly refB: Reference<A, B>;
+    static defineRoles(): Array<IRoleDeclaration>;
     readonly idB: string;
     constructor(container: Container);
+    c(value?: C): Promise<C>;
+    refB(value?: B): Promise<B>;
 }
 export declare class B extends ModelObject {
     constructor(container: Container);

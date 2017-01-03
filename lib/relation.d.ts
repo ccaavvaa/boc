@@ -69,3 +69,7 @@ export declare class HasMany<P extends ModelObject, C extends ModelObject> exten
     protected doLink(opposite: C): void;
     protected doUnlink(opposite: C): void;
 }
+export interface IRoleDeclaration {
+    constr: any;
+    settings: any;
+}

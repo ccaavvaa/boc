@@ -11,7 +11,6 @@ describe('Model metadata', () => {
         let modelMetadata = new ModelMetadata();
         modelMetadata.registerClass(TestDecorator1);
         let testDecorator1ClassInfo = modelMetadata.classesByConstr.get(TestDecorator1);
-        testDecorator1ClassInfo.registerRules();
         expect(testDecorator1ClassInfo.rulesByType.get(MessageType.ObjectInit).length).to.equal(2);
     });
 });

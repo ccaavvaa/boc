@@ -12,8 +12,6 @@ describe('Message router', () => {
     before(() => {
         let metadata: ModelMetadata = new ModelMetadata();
         metadata.registerClass(A);
-        let ci = metadata.classesByConstr.get(A);
-        ci.registerRules();
         router = new MessageRouter(metadata);
     });
     it('should route :-)', () => {
