@@ -25,7 +25,7 @@ describe('Relations', () => {
             container.clear();
             let a = await container.createNew<A>(A);
             let b = await container.createNew<B>(B);
-            await a.refB(b);
+            await a.set_refB(b);
 
             expect(a.idB).to.equal(b.oid);
             let reference = await a.refB();
@@ -53,7 +53,7 @@ describe('Relations', () => {
             let a = await container.createNew<A>(A);
             let c = await container.createNew<C>(C);
 
-            await a.c(c);
+            await a.set_c(c);
 
             let oc = await a.c();
             expect(oc === c).to.true;
@@ -88,10 +88,10 @@ describe('Relations', () => {
             let c1 = await container.createNew<C>(C);
             let c2 = await container.createNew<C>(C);
 
-            await a.c(c1);
+            await a.set_c(c1);
             let e = null;
             try {
-                await a.c(c2);
+                await a.set_c(c2);
             } catch (ex) {
                 e = ex;
             }

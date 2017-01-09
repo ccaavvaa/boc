@@ -1,5 +1,7 @@
 import { Container } from './container';
 import { IRuleExecutionResult, Message, MessageType } from './message';
+import { ClassInfo } from './model-metadata';
+import { HasMany, Many } from './relation';
 
 export type ModelObjectConstructor<T extends ModelObject> = new (container: Container) => T;
 
@@ -20,9 +22,16 @@ export class ModelObject {
 
     public roles: any;
 
+    public properties: any;
+
+    public state: any;
+
     protected constructor(parentContainer: Container) {
         this.container = parentContainer;
-        this.createRoles();
+        let ci = this.container.modelMetadata.getClassInfo(this.constructor);
+
+        this.createProperties(ci);
+        this.createRoles(ci);
     }
 
     public init(data: any, isNew?: boolean): Promise<IRuleExecutionResult[]> {
@@ -45,6 +54,11 @@ export class ModelObject {
     }
 
     protected getProp(propName: string): any {
+        let propObject = this.properties[propName];
+        if (propObject) {
+            return propObject.value;
+        }
+
         if (!this.data) {
             return undefined;
         }
@@ -53,34 +67,66 @@ export class ModelObject {
 
     protected setProp(propName: string, value: any): Promise<IRuleExecutionResult[]> {
         let oldValue = this.data[propName];
-        this.data[propName] = value;
+        let propObject = this.properties[propName];
+        if (propObject) {
+            propObject.value = value;
+        } else {
+            this.data[propName] = value;
+        }
         let message = new Message(
             MessageType.PropChanged,
             this,
             {
+                newValue: this.data[propName],
                 oldValue: oldValue,
                 propName: propName,
             });
         return this.sendMessage(message);
     }
 
-    protected async roleProp(roleName: string, value?: any): Promise<any> {
-        let role = this.roles[roleName];
-        if (value === null) {
-            await role.unlink();
-        } else if (value) {
-            await role.link(value);
+    protected async prop(propName: string, value?: any): Promise<any> {
+        if (value !== undefined) {
+            await this.setProp(propName, value);
         }
+        return this.getProp(propName);
+    }
+
+    protected getRoleProp(roleName: string): Promise<any> {
+        let role = this.roles[roleName];
         return role.getOpposite();
     }
 
-    protected createRoles(): void {
+    protected async setRoleProp(roleName: string, value?: any): Promise<any> {
+        let role = this.roles[roleName];
+        if (value) {
+            return role.link(value);
+        } else {
+            return role.unlink();
+        }
+    }
+
+    protected createRoles(ci: ClassInfo): void {
         this.roles = {};
-        let ci = this.container.modelMetadata.getClassInfo(this.constructor);
         if (ci.roles) {
             for (let roleDeclaration of ci.roles) {
-                this.roles[roleDeclaration.settings.roleProp] =
-                    new roleDeclaration.constr(this, roleDeclaration.settings);
+                let role = new roleDeclaration.constr(this, roleDeclaration.settings);
+                if (role.constructor === HasMany || role.constructor === Many) {
+                    let that: any = this;
+                    that[roleDeclaration.settings.roleProp] = role;
+                } else {
+                    this.roles[roleDeclaration.settings.roleProp] = role;
+                }
+            }
+        }
+    }
+
+    protected createProperties(ci: ClassInfo): void {
+        this.properties = {};
+        if (ci.properties) {
+            for (let propertyDeclaration of ci.properties) {
+                let typeSettings = this.container.modelMetadata.mergeTypeSettings(propertyDeclaration.typeSettings);
+                this.properties[propertyDeclaration.propName] =
+                    new typeSettings.constr(this, propertyDeclaration.propName, typeSettings);
             }
         }
     }

@@ -3,7 +3,6 @@ import { MessageRouter } from './message-router';
 import { ModelMetadata } from './model-metadata';
 import { IdType, ModelObject, ModelObjectConstructor } from './model-object';
 import { ObjectFilter } from './object-filter';
-
 export class Container {
     public readonly messageRouter: MessageRouter;
 

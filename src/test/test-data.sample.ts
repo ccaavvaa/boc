@@ -15,6 +15,24 @@ let data: any = {
     'B': [
         { oid: 'B1' },
     ],
+    'Vente': [
+        {
+            clients: [
+                {
+                    codeTiers: 'tiers1',
+                    idVente: 'V1',
+                    oid: 'C1',
+                },
+                {
+                    codeTiers: 'tiers2',
+                    idVente: 'V1',
+                    oid: 'C2',
+                },
+            ],
+            oid: 'V1',
+            statut: 0,
+        },
+    ],
 };
 
 export class ObjectStore implements IObjectStore {

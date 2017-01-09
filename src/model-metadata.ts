@@ -1,7 +1,9 @@
+import { BocTools } from './boc-tools';
 import { MessageType, Trigger } from './message';
 import { ModelObject } from './model-object';
 import { IRoleDeclaration } from './relation';
 import { RuleDeclaration, ruleDeclarations } from './rule';
+import { IPropertyDeclaration, propertyDeclarations } from './type';
 
 export interface IRulesForTrigger {
     trigger: Trigger;
@@ -22,12 +24,21 @@ export class ClassInfo {
 
     public roles: Array<IRoleDeclaration>;
 
+    public properties: Array<IPropertyDeclaration>;
+
     private _datastoreKey: any;
 
     constructor(constr: any) {
         this.constr = constr;
+        this.registerProperties();
         this.registerRules();
         this.registerRoles();
+    }
+
+    private registerProperties() {
+        this.properties = propertyDeclarations.filter((v, i, a) => {
+            return v.constr === this.constr;
+        });
     }
 
     private registerRoles(): void {
@@ -68,6 +79,24 @@ export class ClassInfo {
 export class ModelMetadata {
     public readonly classesByConstr: Map<any, ClassInfo> = new Map<any, ClassInfo>();
 
+    private readonly typeSettings: any = {};
+
+    public getTypeSettings(name: string): any {
+        return this.typeSettings[name];
+    }
+
+    public mergeTypeSettings(settings: any[]) {
+        let result: any[] = [];
+        for (let setting of settings) {
+            if (typeof (setting) === 'string') {
+                result.push(this.getTypeSettings(setting));
+            } else if (typeof (setting) === 'object') {
+                result.push(setting);
+            }
+        }
+        return BocTools.mergeSettings(result);
+    }
+
     public getClassInfo<T extends ModelObject>(constr: any): ClassInfo {
         let classInfo = this.classesByConstr.get(constr);
         if (classInfo == null) {
@@ -89,5 +118,9 @@ export class ModelMetadata {
         for (let constr of constructors) {
             this.registerClass(constr);
         }
+    }
+
+    public registerTypeSettings(name: string, settings: any): void {
+        this.typeSettings[name] = settings;
     }
 }

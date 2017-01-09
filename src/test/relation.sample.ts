@@ -1,4 +1,5 @@
 import { Container } from '../container';
+import { IRuleExecutionResult } from '../message';
 import { ModelObject } from '../model-object';
 import { HasMany, HasOne, IRelationSettings, IRoleDeclaration, Reference } from '../relation';
 
@@ -51,12 +52,20 @@ export class A extends ModelObject {
         */
     }
 
-    public c(value?: C): Promise<C> {
-        return this.roleProp('c', value);
+    public c(): Promise<C> {
+        return this.getRoleProp('c');
     }
 
-    public refB(value?: B): Promise<B> {
-        return this.roleProp('refB', value);
+    public set_c(value: C): Promise<IRuleExecutionResult[]> {
+        return this.setRoleProp('c', value);
+    }
+
+    public refB(): Promise<B> {
+        return this.getRoleProp('refB');
+    }
+
+    public set_refB(value: B): Promise<IRuleExecutionResult[]> {
+        return this.setRoleProp('refB', value);
     }
 }
 
