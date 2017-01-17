@@ -1,6 +1,7 @@
 import { Container } from './container';
 import { IRuleExecutionResult, Message } from './message';
 import { ClassInfo } from './model-metadata';
+import { ErrorInfos } from './object-error';
 export declare type ModelObjectConstructor<T extends ModelObject> = new (container: Container) => T;
 export declare type IdType = string;
 export declare class ModelObject {
@@ -11,6 +12,7 @@ export declare class ModelObject {
     roles: any;
     properties: any;
     state: any;
+    readonly errors: ErrorInfos;
     protected constructor(parentContainer: Container);
     init(data: any, isNew?: boolean): Promise<IRuleExecutionResult[]>;
     initNew(oid: IdType): Promise<IRuleExecutionResult[]>;

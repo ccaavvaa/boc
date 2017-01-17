@@ -8,19 +8,21 @@ export class Container {
 
     public readonly modelMetadata: ModelMetadata;
 
-    private objects: Map<any, Map<IdType, any>>;
-
     private objectStore: IObjectStore;
 
+    private objects: Map<any, Map<IdType, any>>;
+
     public constructor(settings: IContainerSettings) {
-        this.clear();
         this.modelMetadata = settings.modelMetadata;
         this.messageRouter = new MessageRouter(this.modelMetadata);
         this.objectStore = settings.objectStore;
+        this.clear();
     }
 
     public clear(): void {
         this.objects = new Map<any, Map<IdType, any>>();
+        this.messageRouter.errorsByRule.clear();
+        this.objectStore.reset();
     }
 
     public getInMemById<C extends ModelObject>(constr: any, id: IdType): C {

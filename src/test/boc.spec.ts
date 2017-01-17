@@ -12,6 +12,9 @@ const expect = chai.expect;
 // const assert = chai.assert;
 describe('Vente', () => {
     let container: Container;
+    let reset = () => {
+        container.clear();
+    };
     before(() => {
         let metadata: ModelMetadata = new ModelMetadata();
         metadata.registerTypeSettings('money', { constr: SimpleValue, adapter: DecimalAdapter, decimals: 2 });
@@ -26,7 +29,7 @@ describe('Vente', () => {
 
     it('has correct type for "prix"', () => {
         let test = async (): Promise<void> => {
-            container.clear();
+            reset();
             let vente = await container.createNew<Vente>(Vente);
             await vente.set_prix(123.456);
             let prix = vente.prix;
@@ -36,7 +39,7 @@ describe('Vente', () => {
     });
     it('load vente', () => {
         let test = async (): Promise<void> => {
-            container.clear();
+            reset();
             let vente = await container.getOne<Vente>(Vente, { oid: 'V1' });
             let clients = await vente.clients.toArray();
             expect(clients.length).to.be.equal(2);
@@ -45,11 +48,24 @@ describe('Vente', () => {
     });
     it('change statut', () => {
         let test = async (): Promise<void> => {
-            container.clear();
+            reset();
             let vente = await container.getOne<Vente>(Vente, { oid: 'V1' });
             let rulesResult = await vente.set_statut(StatutVente.Accord);
             expect(BocTools.hasThrownError(rulesResult)).to.be.false;
             expect(vente.dateAccord.toJSON()).equals(BocTools.today().toJSON());
+        };
+        return test();
+    });
+
+    it('change statut error', () => {
+        let test = async (): Promise<void> => {
+            reset();
+            let vente = await container.getOne<Vente>(Vente, { oid: 'V1' });
+            let rulesResult = await vente.set_statut(StatutVente.Definitive);
+            expect(vente.errors.hasErrors).to.be.true;
+            rulesResult = await vente.set_statut(StatutVente.Accord);
+            expect(vente.dateAccord.toJSON()).equals(BocTools.today().toJSON());
+            expect(vente.errors.hasErrors).to.be.false;
         };
         return test();
     });

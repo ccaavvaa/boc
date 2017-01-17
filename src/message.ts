@@ -52,14 +52,21 @@ export class Message {
         public readonly kind: MessageType,
         public readonly target: any,
         public readonly body: any = undefined,
+        public readonly data: any = undefined,
         public readonly constr: Function = undefined) {
         if (constr === undefined) {
             this.constr = target.constructor;
         }
     }
 
-    public match(trigger: ITrigger) {
+    public matchTrigger(trigger: ITrigger): boolean {
         let m = _.isMatch(this, trigger);
         return m;
+    }
+
+    public matchMessage(message: Message): boolean {
+        return message.target === this.target
+            && message.kind === this.kind
+            && _.isEqual(this.body, message.body);
     }
 }

@@ -31,7 +31,9 @@ export declare class Message {
     readonly kind: MessageType;
     readonly target: any;
     readonly body: any;
+    readonly data: any;
     readonly constr: Function;
-    constructor(kind: MessageType, target: any, body?: any, constr?: Function);
-    match(trigger: ITrigger): boolean;
+    constructor(kind: MessageType, target: any, body?: any, data?: any, constr?: Function);
+    matchTrigger(trigger: ITrigger): boolean;
+    matchMessage(message: Message): boolean;
 }

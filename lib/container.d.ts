@@ -5,8 +5,8 @@ import { IdType, ModelObject, ModelObjectConstructor } from './model-object';
 export declare class Container {
     readonly messageRouter: MessageRouter;
     readonly modelMetadata: ModelMetadata;
-    private objects;
     private objectStore;
+    private objects;
     constructor(settings: IContainerSettings);
     clear(): void;
     getInMemById<C extends ModelObject>(constr: any, id: IdType): C;

@@ -11,6 +11,8 @@ export interface IRulesForTrigger {
 }
 
 export class ClassInfo {
+    public static readonly objectTargetName = '#';
+
     public readonly constr: any;
 
     public get dataStoreKey(): any {
@@ -28,11 +30,23 @@ export class ClassInfo {
 
     private _datastoreKey: any;
 
+    private _stateNames: string[];
+
     constructor(constr: any) {
         this.constr = constr;
         this.registerProperties();
         this.registerRules();
         this.registerRoles();
+    }
+
+    public getStateNames(): string[] {
+        if (!this._stateNames) {
+            let properties = this.properties.map<string>((v, i, a) => v.propName);
+            let roles = this.roles.filter((v, i, a) => v.settings.roleProp)
+                .map((v, i, a) => v.settings.roleProp);
+            this._stateNames = [ClassInfo.objectTargetName].concat(properties, roles);
+        }
+        return this._stateNames;
     }
 
     private registerProperties() {

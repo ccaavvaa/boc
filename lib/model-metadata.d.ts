@@ -8,13 +8,16 @@ export interface IRulesForTrigger {
     ruleDeclarations: RuleDeclaration[];
 }
 export declare class ClassInfo {
+    static readonly objectTargetName: string;
     readonly constr: any;
     dataStoreKey: any;
     readonly rulesByType: Map<MessageType, IRulesForTrigger[]>;
     roles: Array<IRoleDeclaration>;
     properties: Array<IPropertyDeclaration>;
     private _datastoreKey;
+    private _stateNames;
     constructor(constr: any);
+    getStateNames(): string[];
     private registerProperties();
     private registerRoles();
     private registerRules();

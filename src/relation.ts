@@ -87,8 +87,10 @@ export abstract class Relation<P extends ModelObject, C extends ModelObject> {
             messageType,
             this.owner,
             {
-                opposite: opposite,
                 propName: this.settings.roleProp,
+            },
+            {
+                opposite: opposite,
             });
         let propagationOK = await this.owner.container.messageRouter.sendMessage(message);
         return propagationOK;

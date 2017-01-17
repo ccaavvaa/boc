@@ -1,6 +1,7 @@
 import { Container } from './container';
 import { IRuleExecutionResult, Message, MessageType } from './message';
 import { ClassInfo } from './model-metadata';
+import { ErrorInfos } from './object-error';
 import { HasMany, Many } from './relation';
 
 export type ModelObjectConstructor<T extends ModelObject> = new (container: Container) => T;
@@ -26,12 +27,15 @@ export class ModelObject {
 
     public state: any;
 
+    public readonly errors: ErrorInfos;
+
     protected constructor(parentContainer: Container) {
         this.container = parentContainer;
         let ci = this.container.modelMetadata.getClassInfo(this.constructor);
 
         this.createProperties(ci);
         this.createRoles(ci);
+        this.errors = new ErrorInfos(this);
     }
 
     public init(data: any, isNew?: boolean): Promise<IRuleExecutionResult[]> {
@@ -77,9 +81,11 @@ export class ModelObject {
             MessageType.PropChanged,
             this,
             {
+                propName: propName,
+            },
+            {
                 newValue: this.data[propName],
                 oldValue: oldValue,
-                propName: propName,
             });
         return this.sendMessage(message);
     }

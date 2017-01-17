@@ -89,7 +89,7 @@ export class Vente extends ModelObject {
         return this.setProp('dateAccord', value);
     }
 
-    @DataType('money', 'positive', {max: 1000000000})
+    @DataType('money', 'positive', { max: 1000000000 })
     public get prix(): number {
         return this.getProp('prix');
     }
@@ -120,23 +120,10 @@ export class VenteRules {
             if (!target.dateAccord) {
                 await target.set_dateAccord(BocTools.today());
             }
+        } else if (target.statut === StatutVente.Definitive) {
+            if (!target.dateAccord) {
+                target.errors.addError(new Error('Date accord non définie'), 'statut');
+            }
         }
     }
-/*    @Rule({
-        description: 'date accord initialisée avec la date du jour quand le statut change',
-        id: 'Vente.2',
-        level: 0,
-        triggers: [
-            {
-                body: {
-                    propName: 'dateAccord',
-                },
-                constr: Vente,
-                kind: MessageType.PropChanged,
-            },
-        ],
-    })
-
-    public static async Vente2(target: Vente, msg: Message): Promise<void> {
-    }
-*/}
+}

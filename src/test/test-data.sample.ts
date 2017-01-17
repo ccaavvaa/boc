@@ -1,6 +1,9 @@
 import { IObjectStore } from '../interface';
 import { IdType } from '../model-object';
 import { ObjectFilter } from '../object-filter';
+
+import * as _ from 'lodash';
+
 let data: any = {
     'A': [
         {
@@ -37,17 +40,28 @@ let data: any = {
 
 export class ObjectStore implements IObjectStore {
     private static nextId: number = 100;
+
+    private data: any;
+
+    constructor() {
+        this.reset();
+    }
+
     public async getOne(collectionKey: string, filter: any): Promise<any> {
-        let collection: any[] = data[collectionKey];
+        let collection: any[] = this.data[collectionKey];
         return ObjectFilter.first(filter, collection);
     }
 
     public async getMany(collectionKey: any, filter: any): Promise<any[]> {
-        let collection: any[] = data[collectionKey];
+        let collection: any[] = this.data[collectionKey];
         return ObjectFilter.filter(filter, collection);
     }
 
     public async getNewId(collectionKey: any): Promise<IdType> {
         return collectionKey + ObjectStore.nextId++;
+    }
+
+    public reset(): void {
+        this.data = _.cloneDeep(data);
     }
 }

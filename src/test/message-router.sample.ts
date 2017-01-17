@@ -30,8 +30,10 @@ export class Base {
             MessageType.PropChanged,
             this,
             {
-                oldValue: oldValue,
                 propName: propName,
+            },
+            {
+                oldValue: oldValue,
             }
         );
         let propagationOK = await this.router.sendMessage(message);
