@@ -1,7 +1,9 @@
+import { IdType } from 'boc-interfaces';
+
 import * as sift from 'sift';
 
 export class ObjectFilter {
-    public static forKey<C>(propKey: keyof C, keyValue: string): any {
+    public static forKey<C>(propKey: keyof C, keyValue: IdType): any {
         let filter: any = {};
         filter[propKey] = keyValue;
         return filter;

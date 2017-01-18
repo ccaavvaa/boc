@@ -1,6 +1,5 @@
-import { IObjectStore } from '../interface';
-import { IdType } from '../model-object';
 import { ObjectFilter } from '../object-filter';
+import { IObjectStore, IdType  } from 'boc-interfaces';
 
 import * as _ from 'lodash';
 

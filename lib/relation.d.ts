@@ -1,5 +1,6 @@
 import { IRuleExecutionResult, MessageType } from './message';
 import { ModelObject } from './model-object';
+import { IdType } from 'boc-interfaces';
 export interface IRelationSettings<P extends ModelObject, C extends ModelObject> {
     roleProp: keyof P;
     key?: keyof P;
@@ -37,7 +38,7 @@ export declare abstract class OneBase<P extends ModelObject, C extends ModelObje
     protected abstract load(): Promise<C>;
 }
 export declare class Reference<P extends ModelObject, C extends ModelObject> extends OneBase<P, C> {
-    readonly key: string;
+    readonly key: IdType;
     protected doLink(opposite: C): void;
     protected doUnlink(opposite: C): void;
     protected load(): Promise<C>;

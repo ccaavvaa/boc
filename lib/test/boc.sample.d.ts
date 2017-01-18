@@ -1,7 +1,8 @@
 import { Container } from '../container';
 import { IRuleExecutionResult, Message } from '../message';
-import { IdType, ModelObject } from '../model-object';
+import { ModelObject } from '../model-object';
 import { HasMany, IRoleDeclaration } from '../relation';
+import { IdType } from 'boc-interfaces';
 export declare class ClientVente extends ModelObject {
     static defineRoles(): IRoleDeclaration[];
     constructor(container: Container);

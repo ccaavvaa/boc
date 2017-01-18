@@ -1,7 +1,8 @@
 import { IContainerSettings } from './interface';
 import { MessageRouter } from './message-router';
 import { ModelMetadata } from './model-metadata';
-import { IdType, ModelObject, ModelObjectConstructor } from './model-object';
+import { ModelObject, ModelObjectConstructor } from './model-object';
+import { IdType } from 'boc-interfaces';
 export declare class Container {
     readonly messageRouter: MessageRouter;
     readonly modelMetadata: ModelMetadata;

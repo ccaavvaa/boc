@@ -2,8 +2,8 @@ import { Container } from './container';
 import { IRuleExecutionResult, Message } from './message';
 import { ClassInfo } from './model-metadata';
 import { ErrorInfos } from './object-error';
+import { IdType } from 'boc-interfaces';
 export declare type ModelObjectConstructor<T extends ModelObject> = new (container: Container) => T;
-export declare type IdType = string;
 export declare class ModelObject {
     static readonly oidProp: string;
     readonly container: Container;

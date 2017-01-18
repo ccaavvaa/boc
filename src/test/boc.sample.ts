@@ -2,9 +2,11 @@ import { BocTools } from '../boc-tools';
 import { Container } from '../container';
 import { Rule } from '../decorators';
 import { IRuleExecutionResult, Message, MessageType } from '../message';
-import { IdType, ModelObject } from '../model-object';
+import { ModelObject } from '../model-object';
 import { HasMany, IRelationSettings, IRoleDeclaration, Reference } from '../relation';
 import { DataType } from '../type';
+
+import {IdType } from 'boc-interfaces';
 
 export class ClientVente extends ModelObject {
     public static defineRoles(): IRoleDeclaration[] {

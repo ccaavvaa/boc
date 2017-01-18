@@ -1,5 +1,4 @@
-import { IObjectStore } from '../interface';
-import { IdType } from '../model-object';
+import { IObjectStore, IdType } from 'boc-interfaces';
 export declare class ObjectStore implements IObjectStore {
     private static nextId;
     private data;

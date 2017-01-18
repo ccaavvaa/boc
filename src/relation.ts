@@ -1,9 +1,8 @@
-// import { Container } from './container';
 import { IRuleExecutionResult, Message, MessageType } from './message';
-// import { MessageRouter } from './message-router';
 import { ModelObject } from './model-object';
-// import { ModelMetadata } from './model-metadata';
 import { ObjectFilter } from './object-filter';
+
+import {IdType} from 'boc-interfaces';
 
 export interface IRelationSettings<P extends ModelObject, C extends ModelObject> {
     roleProp: keyof P;
@@ -185,7 +184,7 @@ export abstract class OneBase<P extends ModelObject, C extends ModelObject> exte
 
 export class Reference<P extends ModelObject, C extends ModelObject> extends OneBase<P, C> {
 
-    public get key(): string {
+    public get key(): IdType {
         if (this.loaded) {
             return this.oppositeValue.oid;
         } else if (this.settings.key) {

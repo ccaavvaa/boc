@@ -4,9 +4,9 @@ import { ClassInfo } from './model-metadata';
 import { ErrorInfos } from './object-error';
 import { HasMany, Many } from './relation';
 
-export type ModelObjectConstructor<T extends ModelObject> = new (container: Container) => T;
+import { IdType } from 'boc-interfaces';
 
-export type IdType = string;
+export type ModelObjectConstructor<T extends ModelObject> = new (container: Container) => T;
 
 export class ModelObject {
 
