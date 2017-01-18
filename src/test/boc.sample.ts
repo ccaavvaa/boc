@@ -6,7 +6,7 @@ import { ModelObject } from '../model-object';
 import { HasMany, IRelationSettings, IRoleDeclaration, Reference } from '../relation';
 import { DataType } from '../type';
 
-import {IdType } from 'boc-interfaces';
+import { IdType } from 'boc-interfaces';
 
 export class ClientVente extends ModelObject {
     public static defineRoles(): IRoleDeclaration[] {
